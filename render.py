@@ -9,10 +9,12 @@
     (также в системе должен быть установлен ffmpeg и добавлен в PATH)
 
 Пример запуска:
-    python render.py --html index.html --out output.mp4 --fps 30
+    python render.py --episode episodes/ep01_apelsin.json --out out/apelsin.mp4 --fps 30
 """
 
 import argparse
+import base64
+import json
 import math
 import subprocess
 import sys
@@ -21,25 +23,33 @@ from pathlib import Path
 from playwright.sync_api import sync_playwright
 
 
-def render_video(html_path: Path, output_path: Path, fps: int = 30, crf: int = 18) -> None:
+def render_video(html_path: Path, episode_path: Path, output_path: Path, fps: int = 30, crf: int = 18) -> None:
     """
-    Выполняет покадровый рендер HTML-страницы в MP4-файл.
+    Выполняет покадровый рендер HTML-страницы с загруженным JSON-эпизодом в MP4-файл.
 
     Args:
         html_path: Путь к исходному HTML-файлу движка.
+        episode_path: Путь к JSON-файлу конкретного выпуска.
         output_path: Путь для сохранения итогового видеофайла.
         fps: Частота кадров (30 или 60).
         crf: Качество H.264 (16-20 — визуально без потерь, меньше число = выше качество).
     """
     if not html_path.exists():
         raise FileNotFoundError(f"HTML-файл не найден: {html_path.resolve()}")
+    if not episode_path.exists():
+        raise FileNotFoundError(f"Файл эпизода не найден: {episode_path.resolve()}")
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    # Формируем URL с параметром ?export=1, чтобы скрыть панель отладки и рамки превью
-    file_url = f"{html_path.resolve().as_uri()}?export=1"
+    # Читаем JSON эпизода и кодируем в base64 для безопасной передачи через URL без CORS-ограничений file://
+    episode_raw = episode_path.read_text(encoding="utf-8")
+    json.loads(episode_raw)  # Проверяем валидность JSON перед запуском браузера
+    episode_b64 = base64.urlsafe_b64encode(episode_raw.encode("utf-8")).decode("ascii")
 
-    print(f"🎬 Запуск рендера: {html_path.name} -> {output_path.name} ({fps} FPS)")
+    # Формируем URL с параметром ?export=1 и данными эпизода
+    file_url = f"{html_path.resolve().as_uri()}?export=1&data={episode_b64}"
+
+    print(f"🎬 Запуск рендера: {episode_path.name} -> {output_path.name} ({fps} FPS)")
 
     with sync_playwright() as p:
         # Запускаем Chromium в безголовом режиме с фиксированным окном 1920x1080
@@ -131,15 +141,22 @@ def render_video(html_path: Path, output_path: Path, fps: int = 30, crf: int = 1
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Рендер HTML-анимации в MP4 (1920x1080)")
-    parser.add_argument("--html", type=Path, default=Path("index.html"), help="Путь к HTML-файлу (по умолчанию index.html)")
-    parser.add_argument("--out", type=Path, default=Path("output.mp4"), help="Выходной MP4-файл (по умолчанию output.mp4)")
+    parser.add_argument("--html", type=Path, default=Path("index.html"), help="Путь к HTML-файлу движка (по умолчанию index.html)")
+    parser.add_argument("--episode", type=Path, default=Path("episodes/ep01_apelsin.json"), help="Путь к JSON-файлу эпизода")
+    parser.add_argument("--out", type=Path, default=Path("out/output.mp4"), help="Выходной MP4-файл (по умолчанию out/output.mp4)")
     parser.add_argument("--fps", type=int, default=30, help="Частота кадров (по умолчанию 30)")
     parser.add_argument("--crf", type=int, default=18, help="Качество H.264 CRF (по умолчанию 18)")
 
     args = parser.parse_args()
 
     try:
-        render_video(html_path=args.html, output_path=args.out, fps=args.fps, crf=args.crf)
+        render_video(
+            html_path=args.html,
+            episode_path=args.episode,
+            output_path=args.out,
+            fps=args.fps,
+            crf=args.crf,
+        )
     except Exception as exc:
         print(f"\n❌ Ошибка рендера: {exc}", file=sys.stderr)
         sys.exit(1)
