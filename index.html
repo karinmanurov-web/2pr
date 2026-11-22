@@ -395,17 +395,25 @@
       justify-content: center;
       gap: 110px;
       flex: 1;
-      padding-top: 20px;
+      padding-top: 8px;
+      /* Нижний запас: подписи остаются над плашкой субтитров (до трёх строк). */
+      padding-bottom: 130px;
     }
 
     .char-slot {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 18px;
+      gap: 12px;
       max-width: 540px;
     }
 
+    .char-figure {
+      display: block;
+      width: 220px;
+      height: 246px;
+      flex: none;
+    }
     .speech-bubble {
       background: #ffffff;
       color: var(--ink-dark);
@@ -438,6 +446,10 @@
       display: flex;
       flex-direction: column;
       justify-content: space-between;
+    }
+
+    #chart-svg {
+      overflow: visible; /* подписи крайних точек не обрезаются краем SVG */
     }
 
     .chart-card {
@@ -792,9 +804,9 @@
        ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ АНИМАЦИИ И ВЕКТОРНЫХ ПЕРСОНАЖЕЙ
        ========================================================================== */
     let EPISODE = DEFAULT_EPISODE;
-    let CHAPTERS = [];
-    let TOTAL_DURATION_MS = 0;
-    let activeChapterKey = null;
+    let TOTAL_DURATION_MS = EPISODE.timings.scene4[1];
+    let CHAPTERS = null;
+    let activeChapter = null;
     let routeTotalLength = 1650;
     let chartLineLength = 1200;
 
@@ -812,28 +824,28 @@
       const mood = charCfg.mood || "curious";
       const hat = charCfg.hat || "none";
 
-      const browLeft = mood === "surprised" ? "M 82 72 Q 92 60 102 72" : "M 82 76 L 102 74";
-      const browRight = mood === "surprised" ? "M 118 72 Q 128 60 138 72" : "M 118 74 L 138 76";
+      const browLeft = mood === "surprised" ? "M 84 52 Q 94 40 104 52" : "M 84 56 L 104 54";
+      const browRight = mood === "surprised" ? "M 116 52 Q 126 40 136 52" : "M 116 54 L 136 56";
       const mouth = mood === "happy"
-        ? "M 96 104 Q 110 118 124 104"
+        ? "M 96 84 Q 110 98 124 84"
         : mood === "surprised"
-          ? "M 104 106 A 6 7 0 1 0 116 106 A 6 7 0 1 0 104 106"
-          : "M 98 108 Q 110 103 122 108";
+          ? "M 104 86 A 6 7 0 1 0 116 86 A 6 7 0 1 0 104 86"
+          : "M 98 88 Q 110 83 122 88";
 
       let hatSvg = "";
       if (hat === "cap") {
-        hatSvg = `<path d="M 74 64 Q 110 28 146 64 Z" fill="#f7b52c" stroke="#1c1c21" stroke-width="4"/><rect x="70" y="60" width="92" height="9" rx="4" fill="#1c1c21"/>`;
+        hatSvg = `<path d="M 74 44 Q 110 8 146 44 Z" fill="#f7b52c" stroke="#1c1c21" stroke-width="4"/><rect x="70" y="40" width="92" height="9" rx="4" fill="#1c1c21"/>`;
       } else if (hat === "merchant") {
-        hatSvg = `<ellipse cx="110" cy="62" rx="48" ry="10" fill="#d94136" stroke="#1c1c21" stroke-width="4"/><path d="M 82 60 L 90 36 L 130 36 L 138 60 Z" fill="#d94136" stroke="#1c1c21" stroke-width="4"/>`;
+        hatSvg = `<ellipse cx="110" cy="42" rx="48" ry="10" fill="#d94136" stroke="#1c1c21" stroke-width="4"/><path d="M 82 40 L 90 16 L 130 16 L 138 40 Z" fill="#d94136" stroke="#1c1c21" stroke-width="4"/>`;
       }
 
       return `
-        <svg width="220" height="290" viewBox="0 0 220 290">
-          <path d="M 52 282 C 52 212, 168 212, 168 282 Z" fill="${shirt}" stroke="#1c1c21" stroke-width="5"/>
-          <rect x="97" y="136" width="26" height="32" rx="10" fill="#f2c9a0" stroke="#1c1c21" stroke-width="4"/>
-          <circle cx="110" cy="96" r="42" fill="#f2c9a0" stroke="#1c1c21" stroke-width="5"/>
-          <circle cx="94" cy="92" r="5.5" fill="#1c1c21"/>
-          <circle cx="126" cy="92" r="5.5" fill="#1c1c21"/>
+        <svg class="char-figure" width="220" height="246" viewBox="0 0 220 246">
+          <path d="M 46 234 C 46 108, 174 108, 174 234 Z" fill="${shirt}" stroke="#1c1c21" stroke-width="5"/>
+          <rect x="98" y="108" width="24" height="42" rx="10" fill="#f2c9a0" stroke="#1c1c21" stroke-width="4"/>
+          <circle cx="110" cy="76" r="40" fill="#f2c9a0" stroke="#1c1c21" stroke-width="5"/>
+          <circle cx="94" cy="72" r="5.5" fill="#1c1c21"/>
+          <circle cx="126" cy="72" r="5.5" fill="#1c1c21"/>
           <path d="${browLeft}" fill="none" stroke="#1c1c21" stroke-width="4" stroke-linecap="round"/>
           <path d="${browRight}" fill="none" stroke="#1c1c21" stroke-width="4" stroke-linecap="round"/>
           <path d="${mouth}" fill="none" stroke="#1c1c21" stroke-width="4" stroke-linecap="round"/>
@@ -898,73 +910,95 @@
     let s6LineEl = null;
     let s6PointNodes = [];
 
-    function getActiveSceneRange(key, fallback) {
-      if (CHAPTERS && activeChapterKey) {
-        const ch = CHAPTERS.find(c => c.id === activeChapterKey);
-        if (ch) {
-          if (ch.scenes && ch.scenes[key]) return ch.scenes[key];
-          if (ch.timings && ch.timings[key]) return ch.timings[key];
-          return fallback;
-        }
-      }
-      return getSceneRange(key, fallback);
+    /* ---- Диапазон сцены: у главы (chapter) или у одиночного эпизода ---- */
+    function rawSceneRange(source, key) {
+      if (!source) return null;
+      if (source.scenes && Array.isArray(source.scenes[key])) return source.scenes[key];
+      if (source.timings && Array.isArray(source.timings[key])) return source.timings[key];
+      return null;
     }
+
+    function getSceneRange(source, key, fallback = [0, 0]) {
+      const range = rawSceneRange(source, key);
+      if (!range) return fallback;
+
+      // Если озвучка/субтитры главы длиннее её последней сцены, держим последнюю сцену
+      // на экране до конца субтитров — вместо пустого экрана с одним текстом.
+      let lastKey = null, lastEnd = -Infinity;
+      for (const k of Object.keys({ ...(source.timings || {}), ...(source.scenes || {}) })) {
+        const r = rawSceneRange(source, k);
+        if (r && r[1] > lastEnd) { lastEnd = r[1]; lastKey = k; }
+      }
+      if (key === lastKey) {
+        const span = chapterSpan(source);
+        if (span && span[1] > range[1]) return [range[0], span[1]];
+      }
+      return range;
+    }
+
     function computeTotalDuration(data) {
-        let maxEnd = 0;
-        const scan = (obj) => {
+      let maxEnd = 0;
+      const scanRanges = (obj) => {
         if (!obj || typeof obj !== "object") return;
         for (const range of Object.values(obj)) {
-          if (Array.isArray(range) && typeof range[1] === "number" && range[1] > maxEnd) {
-            maxEnd = range[1];
-          }
+          if (Array.isArray(range) && typeof range[1] === "number" && range[1] > maxEnd) maxEnd = range[1];
         }
-        };
+      };
+      const scanSubs = (subs) => {
+        if (!Array.isArray(subs)) return;
+        for (const s of subs) if (typeof s.end === "number" && s.end > maxEnd) maxEnd = s.end;
+      };
+      const items = Array.isArray(data.chapters) && data.chapters.length ? data.chapters : [data];
+      for (const it of items) {
+        scanRanges(it.scenes);
+        scanRanges(it.timings);
+        scanSubs(it.subtitles);
+      }
+      return maxEnd > 0 ? maxEnd : 23000;
+    }
 
-        if (Array.isArray(data.chapters) && data.chapters.length) {
-        for (const ch of data.chapters) {
-          scan(ch.scenes);
-          scan(ch.timings);
-          if (Array.isArray(ch.subtitles)) {
-            for (const sub of ch.subtitles) {
-              if (typeof sub.end === "number" && sub.end > maxEnd) maxEnd = sub.end;
-            }
-          }
-        }
-        } else {
-        scan(data.scenes);
-        scan(data.timings);
-        if (Array.isArray(data.subtitles)) {
-          for (const sub of data.subtitles) {
-            if (typeof sub.end === "number" && sub.end > maxEnd) maxEnd = sub.end;
-          }
-        }
-        }
-        return maxEnd > 0 ? maxEnd : 23000;
-        }
+    /* Границы главы: от самого раннего начала до самого позднего конца её сцен и субтитров */
+    function chapterSpan(ch) {
+      const starts = [], ends = [];
+      const add = (r) => {
+        if (Array.isArray(r) && r.length >= 2) { starts.push(Number(r[0]) || 0); ends.push(Number(r[1]) || 0); }
+      };
+      Object.values(ch.scenes || {}).forEach(add);
+      Object.values(ch.timings || {}).forEach(add);
+      (ch.subtitles || []).forEach((s) => add([s.start, s.end]));
+      if (!starts.length) return null;
+      return [Math.min(...starts), Math.max(...ends)];
+    }
 
-        /**
-        * Применяет данные одной "главы" (набор сцен + субтитры).
-        * chapterScenes — объект вида { scene1: {...}, scene2: {...}, ... }
-        */
-        function applyChapterScenes(chapterScenes) {
-        // Сцена 1
-        if (chapterScenes.scene1) {
-        const s1 = chapterScenes.scene1;
-        el.s1Badge.textContent = s1.badge || "";
-        document.getElementById("s1-c1-lang").textContent = s1.card1?.lang || "";
-        document.getElementById("s1-c1-word").textContent = s1.card1?.word || "";
-        document.getElementById("s1-c2-lang").textContent = s1.card2?.lang || "";
-        document.getElementById("s1-c2-word").textContent = s1.card2?.word || "";
-        document.getElementById("s1-stamp-label").textContent = s1.stampLabel || "";
-        document.getElementById("s1-stamp-value").textContent = s1.stampValue || "";
-        el.s1Banner.textContent = s1.banner || "";
-        }
+    function pickChapter(t) {
+      if (!CHAPTERS) return null;
+      return CHAPTERS.find((ch) => {
+        const span = chapterSpan(ch);
+        return span && t >= span[0] && (t < span[1] || (t >= TOTAL_DURATION_MS && span[1] >= TOTAL_DURATION_MS));
+      }) || null;
+    }
 
-        // Сцена 2
-        el.s2StepsContainer.innerHTML = "";
-        s2StepNodes = [];
-        if (chapterScenes.scene2) {
-        (chapterScenes.scene2.timelineLabels || []).forEach((label, idx) => {
+    /**
+     * Наполняет DOM содержимым одного набора сцен.
+     * data — либо весь эпизод (старый формат), либо одна глава (chapters[i]).
+     */
+    function applyChapterScenes(data) {
+      // Сцена 1
+      if (data.scene1) {
+        el.s1Badge.textContent = data.scene1.badge || "";
+        document.getElementById("s1-c1-lang").textContent = data.scene1.card1?.lang || "";
+        document.getElementById("s1-c1-word").textContent = data.scene1.card1?.word || "";
+        document.getElementById("s1-c2-lang").textContent = data.scene1.card2?.lang || "";
+        document.getElementById("s1-c2-word").textContent = data.scene1.card2?.word || "";
+        document.getElementById("s1-stamp-label").textContent = data.scene1.stampLabel || "";
+        document.getElementById("s1-stamp-value").textContent = data.scene1.stampValue || "";
+        el.s1Banner.textContent = data.scene1.banner || "";
+      }
+
+      // Сцена 2
+      el.s2StepsContainer.innerHTML = "";
+      if (data.scene2) {
+        (data.scene2.timelineLabels || []).forEach((label, idx) => {
           const div = document.createElement("div");
           div.className = "timeline-step";
           div.dataset.step = idx;
@@ -972,66 +1006,83 @@
           el.s2StepsContainer.appendChild(div);
         });
         s2StepNodes = el.s2StepsContainer.querySelectorAll(".timeline-step");
-        el.s2Footnote.textContent = chapterScenes.scene2.footnote || "";
-        }
+        el.s2Footnote.textContent = data.scene2.footnote || "";
+      }
 
-        // Сцена 3
-        el.pinsLayer.innerHTML = "";
-        s3PinNodes = [];
-        if (chapterScenes.scene3) {
-        el.s3Badge.textContent = chapterScenes.scene3.badge || "";
-        el.s3Title.textContent = chapterScenes.scene3.title || "";
-        el.route.setAttribute("d", chapterScenes.scene3.routePath || "");
+      // Сцена 3
+      el.pinsLayer.innerHTML = "";
+      s3PinNodes = [];
+      if (data.scene3) {
+        el.s3Badge.textContent = data.scene3.badge || "";
+        el.s3Title.textContent = data.scene3.title || "";
+        el.route.setAttribute("d", data.scene3.routePath || "");
         routeTotalLength = el.route.getTotalLength() || 1650;
         el.route.style.strokeDasharray = routeTotalLength;
         el.route.style.strokeDashoffset = routeTotalLength;
-        s3PinNodes = (chapterScenes.scene3.pins || []).map((pin) => {
+
+        s3PinNodes = (data.scene3.pins || []).map((pin) => {
           const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
           g.setAttribute("opacity", "0");
+
           const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-          circle.setAttribute("cx", pin.x); circle.setAttribute("cy", pin.y);
+          circle.setAttribute("cx", pin.x);
+          circle.setAttribute("cy", pin.y);
           circle.setAttribute("r", pin.highlightBox ? "18" : "16");
           circle.setAttribute("fill", pin.color);
           g.appendChild(circle);
+
           if (pin.ring) {
             const ring = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-            ring.setAttribute("cx", pin.x); ring.setAttribute("cy", pin.y); ring.setAttribute("r", "28");
-            ring.setAttribute("fill", "none"); ring.setAttribute("stroke", pin.color); ring.setAttribute("stroke-width", "4");
+            ring.setAttribute("cx", pin.x);
+            ring.setAttribute("cy", pin.y);
+            ring.setAttribute("r", "28");
+            ring.setAttribute("fill", "none");
+            ring.setAttribute("stroke", pin.color);
+            ring.setAttribute("stroke-width", "4");
             g.appendChild(ring);
           }
+
           const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-          rect.setAttribute("x", pin.boxX); rect.setAttribute("y", pin.boxY);
-          rect.setAttribute("width", pin.boxW); rect.setAttribute("height", pin.boxH);
+          rect.setAttribute("x", pin.boxX);
+          rect.setAttribute("y", pin.boxY);
+          rect.setAttribute("width", pin.boxW);
+          rect.setAttribute("height", pin.boxH);
           rect.setAttribute("rx", "14");
           rect.setAttribute("fill", pin.highlightBox ? "#d94136" : "#1c1c21");
           g.appendChild(rect);
+
           const textTop = document.createElementNS("http://www.w3.org/2000/svg", "text");
           textTop.setAttribute("x", pin.boxX + pin.boxW / 2);
           textTop.setAttribute("y", pin.boxY + 38);
           textTop.setAttribute("fill", pin.highlightBox ? "#fff2cc" : "#f7b52c");
-          textTop.setAttribute("font-size", "22"); textTop.setAttribute("font-weight", "800");
-          textTop.setAttribute("text-anchor", "middle"); textTop.textContent = pin.title;
+          textTop.setAttribute("font-size", "22");
+          textTop.setAttribute("font-weight", "800");
+          textTop.setAttribute("text-anchor", "middle");
+          textTop.textContent = pin.title;
           g.appendChild(textTop);
+
           const textSub = document.createElementNS("http://www.w3.org/2000/svg", "text");
           textSub.setAttribute("x", pin.boxX + pin.boxW / 2);
           textSub.setAttribute("y", pin.boxY + 70);
           textSub.setAttribute("fill", "#ffffff");
           textSub.setAttribute("font-size", pin.highlightBox ? "27" : "24");
           textSub.setAttribute("font-weight", pin.highlightBox ? "900" : "700");
-          textSub.setAttribute("text-anchor", "middle"); textSub.textContent = pin.subtitle;
+          textSub.setAttribute("text-anchor", "middle");
+          textSub.textContent = pin.subtitle;
           g.appendChild(textSub);
+
           el.pinsLayer.appendChild(g);
           return { node: g, appearAt: pin.appearAt };
         });
-        }
+      }
 
-        // Сцена 4
-        el.s4Grid.innerHTML = "";
-        s4BranchNodes = [];
-        if (chapterScenes.scene4) {
-        el.s4Kicker.textContent = chapterScenes.scene4.kicker || "";
-        el.s4Title.textContent = chapterScenes.scene4.title || "";
-        s4BranchNodes = (chapterScenes.scene4.branches || []).map((b) => {
+      // Сцена 4
+      el.s4Grid.innerHTML = "";
+      s4BranchNodes = [];
+      if (data.scene4) {
+        el.s4Kicker.textContent = data.scene4.kicker || "";
+        el.s4Title.textContent = data.scene4.title || "";
+        s4BranchNodes = (data.scene4.branches || []).map((b) => {
           const card = document.createElement("div");
           card.className = "branch-card";
           card.innerHTML = `
@@ -1042,13 +1093,13 @@
           el.s4Grid.appendChild(card);
           return card;
         });
-        }
+      }
 
-        // Сцена 5
-        el.s5Characters.innerHTML = "";
-        s5CharNodes = [];
-        if (chapterScenes.character_scene) {
-        const cs = chapterScenes.character_scene;
+      // Сцена 5: character_scene
+      el.s5Characters.innerHTML = "";
+      s5CharNodes = [];
+      if (data.character_scene) {
+        const cs = data.character_scene;
         el.s5Badge.textContent = cs.badge || "ДИАЛОГ ЭПОХ";
         el.s5Title.textContent = cs.title || "";
         s5CharNodes = (cs.characters || []).map((ch) => {
@@ -1062,97 +1113,124 @@
           el.s5Characters.appendChild(slot);
           return slot;
         });
-        }
+      }
 
-        // Сцена 6
-        el.chartSvg.innerHTML = "";
-        s6LineEl = null;
-        s6PointNodes = [];
-        if (chapterScenes.chart_scene) {
-        const ch = chapterScenes.chart_scene;
+      // Сцена 6: chart_scene
+      el.chartSvg.innerHTML = "";
+      s6LineEl = null;
+      s6PointNodes = [];
+      if (data.chart_scene) {
+        const ch = data.chart_scene;
         el.s6Badge.textContent = ch.badge || "ИСТОРИЧЕСКИЙ ГРАФИК";
         el.s6Title.textContent = ch.title || "";
         const points = ch.points || [];
-        const padLeft = 110, padRight = 90, padTop = 70, padBottom = 100;
+        const padLeft = 110;
+        const padRight = 90;
+        const padTop = 70;
+        const padBottom = 100;
         const plotW = 1560 - padLeft - padRight;
         const plotH = 620 - padTop - padBottom;
+
+        // Горизонтальная сетка и оси
         for (let i = 0; i <= 4; i++) {
           const y = padTop + (plotH * i) / 4;
           const gridLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
-          gridLine.setAttribute("x1", padLeft); gridLine.setAttribute("y1", y);
-          gridLine.setAttribute("x2", padLeft + plotW); gridLine.setAttribute("y2", y);
-          gridLine.setAttribute("stroke", "#e6dfd1"); gridLine.setAttribute("stroke-width", "2");
+          gridLine.setAttribute("x1", padLeft);
+          gridLine.setAttribute("y1", y);
+          gridLine.setAttribute("x2", padLeft + plotW);
+          gridLine.setAttribute("y2", y);
+          gridLine.setAttribute("stroke", "#e6dfd1");
+          gridLine.setAttribute("stroke-width", "2");
           el.chartSvg.appendChild(gridLine);
         }
+
         if (points.length > 0) {
           const coords = points.map((pt, idx) => {
-            const x = points.length === 1 ? padLeft + plotW / 2 : padLeft + (plotW * idx) / (points.length - 1);
+            const x = points.length === 1
+              ? padLeft + plotW / 2
+              : padLeft + (plotW * idx) / (points.length - 1);
             const val = clamp(Number(pt.value || 0), 0, 100);
             const y = padTop + plotH - (val / 100) * plotH;
             return { x, y, label: pt.label || "", note: pt.note || "" };
           });
+
           const pathD = coords.map((c, idx) => `${idx === 0 ? "M" : "L"} ${c.x.toFixed(1)} ${c.y.toFixed(1)}`).join(" ");
           s6LineEl = document.createElementNS("http://www.w3.org/2000/svg", "path");
           s6LineEl.setAttribute("d", pathD);
-          s6LineEl.setAttribute("fill", "none"); s6LineEl.setAttribute("stroke", "#d94136");
-          s6LineEl.setAttribute("stroke-width", "7"); s6LineEl.setAttribute("stroke-linecap", "round");
+          s6LineEl.setAttribute("fill", "none");
+          s6LineEl.setAttribute("stroke", "#d94136");
+          s6LineEl.setAttribute("stroke-width", "7");
+          s6LineEl.setAttribute("stroke-linecap", "round");
           s6LineEl.setAttribute("stroke-linejoin", "round");
           el.chartSvg.appendChild(s6LineEl);
+
           chartLineLength = s6LineEl.getTotalLength() || 1200;
           s6LineEl.style.strokeDasharray = chartLineLength;
           s6LineEl.style.strokeDashoffset = chartLineLength;
+
           coords.forEach((c) => {
             const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
             g.setAttribute("opacity", "0");
+
             const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-            dot.setAttribute("cx", c.x); dot.setAttribute("cy", c.y); dot.setAttribute("r", "11");
-            dot.setAttribute("fill", "#1c1c21"); dot.setAttribute("stroke", "#f7b52c"); dot.setAttribute("stroke-width", "4");
+            dot.setAttribute("cx", c.x);
+            dot.setAttribute("cy", c.y);
+            dot.setAttribute("r", "11");
+            dot.setAttribute("fill", "#1c1c21");
+            dot.setAttribute("stroke", "#f7b52c");
+            dot.setAttribute("stroke-width", "4");
             g.appendChild(dot);
+
             const axisLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
-            axisLabel.setAttribute("x", c.x); axisLabel.setAttribute("y", padTop + plotH + 46);
-            axisLabel.setAttribute("fill", "#1c1c21"); axisLabel.setAttribute("font-size", "24");
-            axisLabel.setAttribute("font-weight", "800"); axisLabel.setAttribute("text-anchor", "middle");
+            axisLabel.setAttribute("x", c.x);
+            axisLabel.setAttribute("y", padTop + plotH + 46);
+            axisLabel.setAttribute("fill", "#1c1c21");
+            axisLabel.setAttribute("font-size", "24");
+            axisLabel.setAttribute("font-weight", "800");
+            axisLabel.setAttribute("text-anchor", "middle");
             axisLabel.textContent = c.label;
             g.appendChild(axisLabel);
+
             if (c.note) {
               const noteText = document.createElementNS("http://www.w3.org/2000/svg", "text");
-              noteText.setAttribute("x", c.x); noteText.setAttribute("y", Math.max(36, c.y - 22));
-              noteText.setAttribute("fill", "#5a5852"); noteText.setAttribute("font-size", "20");
-              noteText.setAttribute("font-weight", "700"); noteText.setAttribute("text-anchor", "middle");
+              noteText.setAttribute("x", c.x);
+              noteText.setAttribute("y", Math.max(36, c.y - 22));
+              noteText.setAttribute("fill", "#5a5852");
+              noteText.setAttribute("font-size", "20");
+              noteText.setAttribute("font-weight", "700");
+              noteText.setAttribute("text-anchor", "middle");
               noteText.textContent = c.note;
               g.appendChild(noteText);
             }
+
             el.chartSvg.appendChild(g);
             s6PointNodes.push(g);
           });
         }
-        }
+      }
 
-        // Сцена 7
-        if (chapterScenes.window_scene) {
-        const ws = chapterScenes.window_scene;
+      // Сцена 7: window_scene
+      if (data.window_scene) {
+        const ws = data.window_scene;
         el.s7WindowTitle.textContent = ws.windowTitle || "LEXICON_NOTE.TXT";
         el.s7Tag.textContent = ws.tag || "СПРАВКА";
         el.s7Kicker.textContent = ws.kicker || "";
         el.s7Headline.textContent = ws.headline || "";
         el.s7Text.textContent = ws.text || "";
-        }
-        }
+      }
+
+    }
 
     function applyEpisodeData(data) {
-        EPISODE = data;
-        CHAPTERS = Array.isArray(data.chapters) && data.chapters.length ? data.chapters : null;
-        TOTAL_DURATION_MS = computeTotalDuration(EPISODE);
+      EPISODE = data;
+      CHAPTERS = Array.isArray(data.chapters) && data.chapters.length ? data.chapters : null;
+      activeChapter = null;          // сбрасываем, чтобы при загрузке нового JSON главы пересобрались
+      TOTAL_DURATION_MS = computeTotalDuration(EPISODE);
 
-        // Для рендера первой главы сразу готовим её сцены (если главы есть)
-        if (CHAPTERS) {
-        applyChapterScenes(CHAPTERS[0]);
-        } else {
-        applyChapterScenes(EPISODE);
-        }
+      applyChapterScenes(CHAPTERS ? CHAPTERS[0] : EPISODE);
 
-        const scrubber = document.getElementById("scrubber");
-        if (scrubber) scrubber.max = TOTAL_DURATION_MS;
+      const scrubber = document.getElementById("scrubber");
+      if (scrubber) scrubber.max = TOTAL_DURATION_MS;
     }
 
     /**
@@ -1161,55 +1239,147 @@
     window.renderAt = function(t) {
       t = clamp(Number(t) || 0, 0, TOTAL_DURATION_MS);
 
-      // Определяем активную главу и обновляем её содержимое при переключении.
-      let activeCh = null;
-      if (CHAPTERS && CHAPTERS.length) {
-        activeCh = CHAPTERS.find((ch) => {
-          const ranges = [];
-          if (ch.timings) Object.values(ch.timings).forEach((r) => { if (Array.isArray(r)) ranges.push(r); });
-          if (ch.scenes) Object.values(ch.scenes).forEach((r) => { if (Array.isArray(r)) ranges.push(r); });
-          (ch.subtitles || []).forEach((s) => ranges.push([s.start, s.end]));
-          if (!ranges.length) return false;
-          return t >= Math.min(...ranges.map((r) => Number(r[0]) || 0)) &&
-                 t <= Math.max(...ranges.map((r) => Number(r[1]) || 0));
-        });
-        if (activeCh && activeChapterKey !== activeCh.id) {
-          activeChapterKey = activeCh.id;
-          applyChapterScenes(activeCh);
+      // Какой набор данных сейчас активен: глава (если эпизод из глав) или весь эпизод целиком.
+      // Между главами (паузы) src === null: сцены скрыты.
+      let src = EPISODE;
+      if (CHAPTERS) {
+        src = pickChapter(t);
+        if (src && src !== activeChapter) {
+          activeChapter = src;
+          applyChapterScenes(src);
         }
       }
+      const data = src || {};
 
-      const source = activeCh || EPISODE;
-      const timings = source.timings || {};
-      const sceneData = source.scenes || {};
-      const sceneKeys = [
-        ["scene1", el.s1],
-        ["scene2", el.s2],
-        ["scene3", el.s3],
-        ["scene4", el.s4],
-        ["character_scene", el.s5],
-        ["chart_scene", el.s6],
-        ["window_scene", el.s7]
-      ];
+      const inRange = (start, end) =>
+        end > start && t >= start && (t < end || (t >= TOTAL_DURATION_MS && end >= TOTAL_DURATION_MS));
 
-      sceneKeys.forEach(([key, node]) => {
-        let range = timings[key] || sceneData[key];
-        if (!Array.isArray(range) && !activeCh) {
-          range = EPISODE.timings?.[key] || EPISODE.scenes?.[key];
-        }
-        const valid = Array.isArray(range) && range.length >= 2;
-        const visible = valid && t >= Number(range[0]) && t < Number(range[1]);
-        node.style.opacity = visible ? "1" : "0";
-        node.style.pointerEvents = visible ? "auto" : "none";
-      });
+      const [s1Start, s1End] = getSceneRange(src, "scene1");
+      const [s2Start, s2End] = getSceneRange(src, "scene2");
+      const [s3Start, s3End] = getSceneRange(src, "scene3");
+      const [s4Start, s4End] = getSceneRange(src, "scene4");
+      const [s5Start, s5End] = getSceneRange(src, "character_scene");
+      const [s6Start, s6End] = getSceneRange(src, "chart_scene");
+      const [s7Start, s7End] = getSceneRange(src, "window_scene");
 
-      const subtitles = (source.subtitles || EPISODE.subtitles || []);
-      const activeSub = subtitles.find((s) => t >= s.start && t < s.end);
+      // СЦЕНА 1
+      const s1Visible = inRange(s1Start, s1End);
+      el.s1.style.opacity = s1Visible ? 1 : 0;
+      if (s1Visible) {
+        const pBadge = easeOutCubic(progress(t, s1Start + 100, s1Start + 600));
+        el.s1Badge.style.opacity = pBadge;
+        el.s1Badge.style.transform = `translateY(${(1 - pBadge) * -30}px)`;
+
+        const pC1 = easeOutBack(progress(t, s1Start + 350, s1Start + 950));
+        el.s1Card1.style.opacity = clamp(pC1, 0, 1);
+        el.s1Card1.style.transform = `rotate(-3deg) scale(${0.7 + 0.3 * pC1})`;
+
+        const pC2 = easeOutBack(progress(t, s1Start + 650, s1Start + 1250));
+        el.s1Card2.style.opacity = clamp(pC2, 0, 1);
+        el.s1Card2.style.transform = `rotate(2deg) scale(${0.7 + 0.3 * pC2})`;
+
+        const pStamp = easeOutBack(progress(t, s1Start + 1200, s1Start + 1800));
+        el.s1Stamp.style.opacity = clamp(pStamp, 0, 1);
+        el.s1Stamp.style.transform = `rotate(-2deg) scale(${0.6 + 0.4 * pStamp})`;
+
+        const pBanner = easeOutCubic(progress(t, s1Start + 1600, s1Start + 2200));
+        el.s1Banner.style.opacity = pBanner;
+        el.s1Banner.style.transform = `translateY(${(1 - pBanner) * 40}px)`;
+      }
+
+      // СЦЕНА 2
+      const s2Visible = inRange(s2Start, s2End);
+      el.s2.style.opacity = s2Visible ? 1 : 0;
+      if (s2Visible && data.scene2 && Array.isArray(data.scene2.stages) && data.scene2.stages.length > 0) {
+        const stages = data.scene2.stages;
+        const currentStage = stages.find(s => t >= s.start && t < s.end) || stages[stages.length - 1];
+        const localP = easeOutCubic(progress(t, currentStage.start, currentStage.start + 450));
+
+        s2StepNodes.forEach((stepEl, idx) => {
+          stepEl.classList.toggle("active", idx === currentStage.stepIndex);
+        });
+
+        el.s2Era.textContent = currentStage.era;
+        el.s2Word.innerHTML = currentStage.word;
+        el.s2Meaning.textContent = currentStage.meaning;
+
+        el.s2Card.style.opacity = localP;
+        el.s2Card.style.transform = `translateY(${(1 - localP) * 24}px) scale(${0.96 + 0.04 * localP})`;
+      }
+
+      // СЦЕНА 3: КАРТА
+      const s3Visible = inRange(s3Start, s3End);
+      el.s3.style.opacity = s3Visible ? 1 : 0;
+      if (s3Visible && data.scene3) {
+        const [rStart, rEnd] = data.scene3.routeAnim || [s3Start + 300, s3End - 500];
+        const routeP = easeOutCubic(progress(t, rStart, rEnd));
+        el.route.style.strokeDashoffset = routeTotalLength * (1 - routeP);
+
+        s3PinNodes.forEach((p) => {
+          const opacity = easeOutCubic(progress(t, p.appearAt, p.appearAt + 500));
+          p.node.setAttribute("opacity", opacity.toFixed(3));
+        });
+      }
+
+      // СЦЕНА 4: ВЕТВЛЕНИЕ
+      const s4Visible = inRange(s4Start, s4End);
+      el.s4.style.opacity = s4Visible ? 1 : 0;
+      if (s4Visible) {
+        const pRoot = easeOutCubic(progress(t, s4Start + 200, s4Start + 800));
+        el.s4Root.style.opacity = pRoot;
+        el.s4Root.style.transform = `translateY(${(1 - pRoot) * -25}px)`;
+
+        s4BranchNodes.forEach((card, idx) => {
+          const start = s4Start + 800 + idx * 350;
+          const pCard = easeOutBack(progress(t, start, start + 550));
+          card.style.opacity = clamp(pCard, 0, 1);
+          card.style.transform = `translateY(${(1 - pCard) * 35}px)`;
+        });
+      }
+
+      // СЦЕНА 5: ПЕРСОНАЖИ (character_scene)
+      const s5Visible = inRange(s5Start, s5End);
+      el.s5.style.opacity = s5Visible ? 1 : 0;
+      if (s5Visible) {
+        s5CharNodes.forEach((slot, idx) => {
+          const start = s5Start + 250 + idx * 500;
+          const p = easeOutBack(progress(t, start, start + 600));
+          slot.style.opacity = clamp(p, 0, 1);
+          slot.style.transform = `translateY(${(1 - p) * 40}px) scale(${0.92 + 0.08 * p})`;
+        });
+      }
+
+      // СЦЕНА 6: ГРАФИК (chart_scene)
+      const s6Visible = inRange(s6Start, s6End);
+      el.s6.style.opacity = s6Visible ? 1 : 0;
+      if (s6Visible && s6LineEl) {
+        const lineP = easeOutCubic(progress(t, s6Start + 300, s6Start + 2200));
+        s6LineEl.style.strokeDashoffset = chartLineLength * (1 - lineP);
+
+        const totalPts = Math.max(s6PointNodes.length, 1);
+        s6PointNodes.forEach((ptNode, idx) => {
+          const ptAppear = s6Start + 300 + (idx / totalPts) * 1900;
+          const ptOp = easeOutCubic(progress(t, ptAppear, ptAppear + 400));
+          ptNode.setAttribute("opacity", ptOp.toFixed(3));
+        });
+      }
+
+      // СЦЕНА 7: ОКНО ИНТЕРФЕЙСА (window_scene)
+      const s7Visible = inRange(s7Start, s7End);
+      el.s7.style.opacity = s7Visible ? 1 : 0;
+      if (s7Visible) {
+        const pWin = easeOutBack(progress(t, s7Start + 200, s7Start + 800));
+        el.s7Window.style.opacity = clamp(pWin, 0, 1);
+        el.s7Window.style.transform = `translateY(${(1 - pWin) * 32}px) scale(${0.95 + 0.05 * pWin})`;
+      }
+
+      // СУБТИТРЫ
+      const activeSub = (data.subtitles || []).find(s => t >= s.start && t < s.end);
       if (activeSub) {
-        el.subText.textContent = activeSub.text || "";
-        el.subText.style.opacity = "1";
+        el.subText.textContent = activeSub.text;
+        el.subText.style.opacity = 1;
       } else {
-        el.subText.style.opacity = "0";
+        el.subText.style.opacity = 0;
       }
     };
 
