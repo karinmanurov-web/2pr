@@ -67,7 +67,7 @@ def render_video(
 
     with sync_playwright() as p:
         # Запускаем Chromium в безголовом режиме с фиксированным окном 1920x1080
-        browser = p.chromium.launch(headless=True)
+        browser = p.chromium.launch(channel="msedge", headless=True)
         context = browser.new_context(
             viewport={"width": 1920, "height": 1080},
             device_scale_factor=1,
@@ -91,6 +91,7 @@ def render_video(
             ffmpeg_cmd = [
                 "ffmpeg",
                 "-y",                        # Перезаписывать выходной файл без подтверждения
+                "-loglevel", "error",
                 "-f", "image2pipe",          # Чтение последовательности изображений из потока
                 "-vcodec", "mjpeg",          # Формат входных кадров (быстрее PNG при сохранении качества)
                 "-framerate", str(fps),      # Частота кадров входного потока
