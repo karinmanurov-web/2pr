@@ -366,6 +366,172 @@
       font-weight: 600;
     }
 
+    /* Новая сцена 5: Сценка с персонажами (character_scene) */
+    .char-scene-layout {
+      width: 100%;
+      height: 100%;
+      padding: 64px 96px 140px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .scene-top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .scene-heading-main {
+      font-size: 44px;
+      font-weight: 900;
+      color: var(--ink-dark);
+    }
+
+    .char-stage-row {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 110px;
+      flex: 1;
+      padding-top: 8px;
+      /* Нижний запас: подписи остаются над плашкой субтитров (до трёх строк). */
+      padding-bottom: 130px;
+    }
+
+    .char-slot {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      max-width: 540px;
+    }
+
+    .char-figure {
+      display: block;
+      width: 220px;
+      height: 246px;
+      flex: none;
+    }
+
+    .speech-bubble {
+      background: #ffffff;
+      color: var(--ink-dark);
+      border: 3px solid var(--ink-dark);
+      border-radius: 22px;
+      padding: 20px 28px;
+      font-size: 30px;
+      font-weight: 800;
+      line-height: 1.25;
+      text-align: center;
+      box-shadow: 0 12px 26px rgba(0, 0, 0, 0.12);
+    }
+
+    .char-role-label {
+      background: var(--ink-dark);
+      color: var(--accent-yellow);
+      padding: 8px 20px;
+      border-radius: 10px;
+      font-size: 20px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    /* Новая сцена 6: Исторический график (chart_scene) */
+    .chart-scene-layout {
+      width: 100%;
+      height: 100%;
+      padding: 64px 96px 140px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .chart-card {
+      background: #ffffff;
+      border: 3px solid #dfd7c7;
+      border-radius: 28px;
+      padding: 28px 36px;
+      box-shadow: 0 20px 48px rgba(28, 28, 33, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Новая сцена 7: Окно факта / ретро-интерфейс (window_scene) */
+    .window-scene-layout {
+      width: 100%;
+      height: 100%;
+      padding: 72px 120px 140px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .retro-window {
+      width: 1460px;
+      background: #fffdf8;
+      border: 4px solid var(--ink-dark);
+      border-radius: 22px;
+      box-shadow: 14px 14px 0px var(--ink-dark);
+      overflow: hidden;
+    }
+
+    .retro-titlebar {
+      background: var(--ink-dark);
+      color: #ffffff;
+      padding: 16px 26px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .retro-dots {
+      display: flex;
+      gap: 10px;
+    }
+
+    .retro-dot {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .retro-body {
+      padding: 48px 56px;
+    }
+
+    .retro-kicker {
+      font-size: 24px;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: var(--accent-red);
+      letter-spacing: 0.06em;
+      margin-bottom: 14px;
+    }
+
+    .retro-headline {
+      font-size: 64px;
+      font-weight: 900;
+      color: var(--ink-dark);
+      line-height: 1.15;
+      margin-bottom: 24px;
+    }
+
+    .retro-text {
+      font-size: 32px;
+      font-weight: 600;
+      color: var(--ink-muted);
+      line-height: 1.4;
+    }
+
     /* Панель отладки в браузере */
     #dev-controls {
       position: fixed;
@@ -379,7 +545,7 @@
       border-radius: 14px;
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 14px;
       color: #fff;
       z-index: 9999;
       font-size: 14px;
@@ -397,7 +563,7 @@
     }
 
     #dev-controls input[type="range"] {
-      width: 360px;
+      width: 320px;
       cursor: pointer;
     }
 
@@ -501,6 +667,52 @@
         </div>
       </section>
 
+      <!-- СЦЕНА 5: СЦЕНКА С ПЕРСОНАЖАМИ (character_scene) -->
+      <section class="scene theme-paper" id="scene-5">
+        <div class="char-scene-layout">
+          <div class="scene-top-bar">
+            <div class="pill-badge pill-yellow" id="s5-badge">ДИАЛОГ ЭПОХ</div>
+            <div class="scene-heading-main" id="s5-title">Как слово передавалось из рук в руки</div>
+          </div>
+          <div class="char-stage-row" id="s5-characters"></div>
+        </div>
+      </section>
+
+      <!-- СЦЕНА 6: ИСТОРИЧЕСКИЙ ГРАФИК (chart_scene) -->
+      <section class="scene theme-paper" id="scene-6">
+        <div class="chart-scene-layout">
+          <div class="scene-top-bar">
+            <div class="pill-badge pill-yellow" id="s6-badge">ДИНАМИКА УПОТРЕБЛЕНИЯ</div>
+            <div class="scene-heading-main" id="s6-title">Рост популярности слова по векам</div>
+          </div>
+          <div class="chart-card">
+            <svg width="1560" height="620" viewBox="0 0 1560 620" id="chart-svg"></svg>
+          </div>
+        </div>
+      </section>
+
+      <!-- СЦЕНА 7: КАРТОЧКА / ОКНО ИНТЕРФЕЙСА (window_scene) -->
+      <section class="scene theme-paper" id="scene-7">
+        <div class="window-scene-layout">
+          <div class="retro-window" id="s7-window">
+            <div class="retro-titlebar">
+              <div class="retro-dots">
+                <span class="retro-dot" style="background:#d94136;"></span>
+                <span class="retro-dot" style="background:#f7b52c;"></span>
+                <span class="retro-dot" style="background:#2e8555;"></span>
+              </div>
+              <span id="s7-window-title">LEXICON_NOTE.TXT</span>
+              <span id="s7-tag">СПРАВКА</span>
+            </div>
+            <div class="retro-body">
+              <div class="retro-kicker" id="s7-kicker">ЛЮБОПЫТНЫЙ ФАКТ</div>
+              <div class="retro-headline" id="s7-headline">Заголовок карточки</div>
+              <div class="retro-text" id="s7-text">Подробное пояснение исторического смысла или курьёзного перехода.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <div id="subtitle-bar">
         <div id="subtitle-text"></div>
       </div>
@@ -514,9 +726,14 @@
       📂 Загрузить JSON
       <input type="file" id="json-file-input" accept=".json" style="display: none;" />
     </label>
+    <label class="file-btn" title="Загрузить файл озвучки (.mp3, .wav, .ogg) для проверки в плеере">
+      🔊 Загрузить аудио
+      <input type="file" id="audio-file-input" accept="audio/*" style="display: none;" />
+    </label>
     <button id="btn-play">▶ Пауза / Пуск</button>
     <input type="range" id="scrubber" min="0" max="23000" value="0" step="10" />
     <span id="time-display">00:00.0 / 00:23.0</span>
+    <audio id="voice-audio" preload="auto"></audio>
   </div>
 
   <script>
@@ -581,20 +798,56 @@
     };
 
     /* ==========================================================================
-       ИНИЦИАЛИЗАЦИЯ СЦЕНЫ ИЗ ДАННЫХ ЭПИЗОДА
+       ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ АНИМАЦИИ И ВЕКТОРНЫХ ПЕРСОНАЖЕЙ
        ========================================================================== */
     let EPISODE = DEFAULT_EPISODE;
     let TOTAL_DURATION_MS = EPISODE.timings.scene4[1];
     let routeTotalLength = 1650;
+    let chartLineLength = 1200;
 
     const clamp = (val, min, max) => Math.max(min, Math.min(max, val));
-    const progress = (t, start, end) => clamp((t - start) / (end - start), 0, 1);
+    const progress = (t, start, end) => (end <= start ? 1 : clamp((t - start) / (end - start), 0, 1));
     const easeOutCubic = (x) => 1 - Math.pow(1 - x, 3);
     const easeOutBack = (x) => {
       const c1 = 1.70158;
       const c3 = c1 + 1;
       return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2);
     };
+
+    function renderCharacterSvg(charCfg = {}) {
+      const shirt = charCfg.color || "#2b5b84";
+      const mood = charCfg.mood || "curious";
+      const hat = charCfg.hat || "none";
+
+      const browLeft = mood === "surprised" ? "M 84 52 Q 94 40 104 52" : "M 84 56 L 104 54";
+      const browRight = mood === "surprised" ? "M 116 52 Q 126 40 136 52" : "M 116 54 L 136 56";
+      const mouth = mood === "happy"
+        ? "M 96 84 Q 110 98 124 84"
+        : mood === "surprised"
+          ? "M 104 86 A 6 7 0 1 0 116 86 A 6 7 0 1 0 104 86"
+          : "M 98 88 Q 110 83 122 88";
+
+      let hatSvg = "";
+      if (hat === "cap") {
+        hatSvg = `<path d="M 74 44 Q 110 8 146 44 Z" fill="#f7b52c" stroke="#1c1c21" stroke-width="4"/><rect x="70" y="40" width="92" height="9" rx="4" fill="#1c1c21"/>`;
+      } else if (hat === "merchant") {
+        hatSvg = `<ellipse cx="110" cy="42" rx="48" ry="10" fill="#d94136" stroke="#1c1c21" stroke-width="4"/><path d="M 82 40 L 90 16 L 130 16 L 138 40 Z" fill="#d94136" stroke="#1c1c21" stroke-width="4"/>`;
+      }
+
+      return `
+        <svg class="char-figure" width="220" height="246" viewBox="0 0 220 246">
+          <path d="M 46 234 C 46 108, 174 108, 174 234 Z" fill="${shirt}" stroke="#1c1c21" stroke-width="5"/>
+          <rect x="98" y="108" width="24" height="42" rx="10" fill="#f2c9a0" stroke="#1c1c21" stroke-width="4"/>
+          <circle cx="110" cy="76" r="40" fill="#f2c9a0" stroke="#1c1c21" stroke-width="5"/>
+          <circle cx="94" cy="72" r="5.5" fill="#1c1c21"/>
+          <circle cx="126" cy="72" r="5.5" fill="#1c1c21"/>
+          <path d="${browLeft}" fill="none" stroke="#1c1c21" stroke-width="4" stroke-linecap="round"/>
+          <path d="${browRight}" fill="none" stroke="#1c1c21" stroke-width="4" stroke-linecap="round"/>
+          <path d="${mouth}" fill="none" stroke="#1c1c21" stroke-width="4" stroke-linecap="round"/>
+          ${hatSvg}
+        </svg>
+      `;
+    }
 
     const el = {
       s1: document.getElementById("scene-1"),
@@ -624,118 +877,309 @@
       s4Title: document.getElementById("s4-title"),
       s4Grid: document.getElementById("s4-grid"),
 
+      s5: document.getElementById("scene-5"),
+      s5Badge: document.getElementById("s5-badge"),
+      s5Title: document.getElementById("s5-title"),
+      s5Characters: document.getElementById("s5-characters"),
+
+      s6: document.getElementById("scene-6"),
+      s6Badge: document.getElementById("s6-badge"),
+      s6Title: document.getElementById("s6-title"),
+      chartSvg: document.getElementById("chart-svg"),
+
+      s7: document.getElementById("scene-7"),
+      s7Window: document.getElementById("s7-window"),
+      s7WindowTitle: document.getElementById("s7-window-title"),
+      s7Tag: document.getElementById("s7-tag"),
+      s7Kicker: document.getElementById("s7-kicker"),
+      s7Headline: document.getElementById("s7-headline"),
+      s7Text: document.getElementById("s7-text"),
+
       subText: document.getElementById("subtitle-text")
     };
 
     let s2StepNodes = [];
     let s3PinNodes = [];
     let s4BranchNodes = [];
+    let s5CharNodes = [];
+    let s6LineEl = null;
+    let s6PointNodes = [];
+
+    function getSceneRange(key, fallback) {
+      if (EPISODE.scenes && EPISODE.scenes[key]) {
+        return EPISODE.scenes[key];
+      }
+      if (EPISODE.timings && EPISODE.timings[key]) {
+        return EPISODE.timings[key];
+      }
+      return fallback;
+    }
+
+    function computeTotalDuration(data) {
+      let maxEnd = 0;
+      if (data.scenes && typeof data.scenes === "object") {
+        for (const range of Object.values(data.scenes)) {
+          if (Array.isArray(range) && typeof range[1] === "number" && range[1] > maxEnd) {
+            maxEnd = range[1];
+          }
+        }
+      }
+      if (data.timings && typeof data.timings === "object") {
+        for (const range of Object.values(data.timings)) {
+          if (Array.isArray(range) && typeof range[1] === "number" && range[1] > maxEnd) {
+            maxEnd = range[1];
+          }
+        }
+      }
+      if (Array.isArray(data.subtitles)) {
+        for (const sub of data.subtitles) {
+          if (typeof sub.end === "number" && sub.end > maxEnd) {
+            maxEnd = sub.end;
+          }
+        }
+      }
+      return maxEnd > 0 ? maxEnd : 23000;
+    }
 
     function applyEpisodeData(data) {
       EPISODE = data;
-      TOTAL_DURATION_MS = EPISODE.timings.scene4[1];
+      TOTAL_DURATION_MS = computeTotalDuration(EPISODE);
 
       // Сцена 1
-      el.s1Badge.textContent = EPISODE.scene1.badge;
-      document.getElementById("s1-c1-lang").textContent = EPISODE.scene1.card1.lang;
-      document.getElementById("s1-c1-word").textContent = EPISODE.scene1.card1.word;
-      document.getElementById("s1-c2-lang").textContent = EPISODE.scene1.card2.lang;
-      document.getElementById("s1-c2-word").textContent = EPISODE.scene1.card2.word;
-      document.getElementById("s1-stamp-label").textContent = EPISODE.scene1.stampLabel;
-      document.getElementById("s1-stamp-value").textContent = EPISODE.scene1.stampValue;
-      el.s1Banner.textContent = EPISODE.scene1.banner;
+      if (EPISODE.scene1) {
+        el.s1Badge.textContent = EPISODE.scene1.badge || "";
+        document.getElementById("s1-c1-lang").textContent = EPISODE.scene1.card1?.lang || "";
+        document.getElementById("s1-c1-word").textContent = EPISODE.scene1.card1?.word || "";
+        document.getElementById("s1-c2-lang").textContent = EPISODE.scene1.card2?.lang || "";
+        document.getElementById("s1-c2-word").textContent = EPISODE.scene1.card2?.word || "";
+        document.getElementById("s1-stamp-label").textContent = EPISODE.scene1.stampLabel || "";
+        document.getElementById("s1-stamp-value").textContent = EPISODE.scene1.stampValue || "";
+        el.s1Banner.textContent = EPISODE.scene1.banner || "";
+      }
 
       // Сцена 2
       el.s2StepsContainer.innerHTML = "";
-      EPISODE.scene2.timelineLabels.forEach((label, idx) => {
-        const div = document.createElement("div");
-        div.className = "timeline-step";
-        div.dataset.step = idx;
-        div.textContent = label;
-        el.s2StepsContainer.appendChild(div);
-      });
-      s2StepNodes = el.s2StepsContainer.querySelectorAll(".timeline-step");
-      el.s2Footnote.textContent = EPISODE.scene2.footnote || "";
+      if (EPISODE.scene2) {
+        (EPISODE.scene2.timelineLabels || []).forEach((label, idx) => {
+          const div = document.createElement("div");
+          div.className = "timeline-step";
+          div.dataset.step = idx;
+          div.textContent = label;
+          el.s2StepsContainer.appendChild(div);
+        });
+        s2StepNodes = el.s2StepsContainer.querySelectorAll(".timeline-step");
+        el.s2Footnote.textContent = EPISODE.scene2.footnote || "";
+      }
 
       // Сцена 3
-      el.s3Badge.textContent = EPISODE.scene3.badge;
-      el.s3Title.textContent = EPISODE.scene3.title;
-      el.route.setAttribute("d", EPISODE.scene3.routePath);
-      routeTotalLength = el.route.getTotalLength() || 1650;
-      el.route.style.strokeDasharray = routeTotalLength;
-      el.route.style.strokeDashoffset = routeTotalLength;
-
       el.pinsLayer.innerHTML = "";
-      s3PinNodes = EPISODE.scene3.pins.map((pin) => {
-        const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
-        g.setAttribute("opacity", "0");
+      s3PinNodes = [];
+      if (EPISODE.scene3) {
+        el.s3Badge.textContent = EPISODE.scene3.badge || "";
+        el.s3Title.textContent = EPISODE.scene3.title || "";
+        el.route.setAttribute("d", EPISODE.scene3.routePath || "");
+        routeTotalLength = el.route.getTotalLength() || 1650;
+        el.route.style.strokeDasharray = routeTotalLength;
+        el.route.style.strokeDashoffset = routeTotalLength;
 
-        const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-        circle.setAttribute("cx", pin.x);
-        circle.setAttribute("cy", pin.y);
-        circle.setAttribute("r", pin.highlightBox ? "18" : "16");
-        circle.setAttribute("fill", pin.color);
-        g.appendChild(circle);
+        s3PinNodes = (EPISODE.scene3.pins || []).map((pin) => {
+          const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+          g.setAttribute("opacity", "0");
 
-        if (pin.ring) {
-          const ring = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-          ring.setAttribute("cx", pin.x);
-          ring.setAttribute("cy", pin.y);
-          ring.setAttribute("r", "28");
-          ring.setAttribute("fill", "none");
-          ring.setAttribute("stroke", pin.color);
-          ring.setAttribute("stroke-width", "4");
-          g.appendChild(ring);
-        }
+          const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+          circle.setAttribute("cx", pin.x);
+          circle.setAttribute("cy", pin.y);
+          circle.setAttribute("r", pin.highlightBox ? "18" : "16");
+          circle.setAttribute("fill", pin.color);
+          g.appendChild(circle);
 
-        const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-        rect.setAttribute("x", pin.boxX);
-        rect.setAttribute("y", pin.boxY);
-        rect.setAttribute("width", pin.boxW);
-        rect.setAttribute("height", pin.boxH);
-        rect.setAttribute("rx", "14");
-        rect.setAttribute("fill", pin.highlightBox ? "#d94136" : "#1c1c21");
-        g.appendChild(rect);
+          if (pin.ring) {
+            const ring = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            ring.setAttribute("cx", pin.x);
+            ring.setAttribute("cy", pin.y);
+            ring.setAttribute("r", "28");
+            ring.setAttribute("fill", "none");
+            ring.setAttribute("stroke", pin.color);
+            ring.setAttribute("stroke-width", "4");
+            g.appendChild(ring);
+          }
 
-        const textTop = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        textTop.setAttribute("x", pin.boxX + pin.boxW / 2);
-        textTop.setAttribute("y", pin.boxY + 38);
-        textTop.setAttribute("fill", pin.highlightBox ? "#fff2cc" : "#f7b52c");
-        textTop.setAttribute("font-size", "22");
-        textTop.setAttribute("font-weight", "800");
-        textTop.setAttribute("text-anchor", "middle");
-        textTop.textContent = pin.title;
-        g.appendChild(textTop);
+          const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+          rect.setAttribute("x", pin.boxX);
+          rect.setAttribute("y", pin.boxY);
+          rect.setAttribute("width", pin.boxW);
+          rect.setAttribute("height", pin.boxH);
+          rect.setAttribute("rx", "14");
+          rect.setAttribute("fill", pin.highlightBox ? "#d94136" : "#1c1c21");
+          g.appendChild(rect);
 
-        const textSub = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        textSub.setAttribute("x", pin.boxX + pin.boxW / 2);
-        textSub.setAttribute("y", pin.boxY + 70);
-        textSub.setAttribute("fill", "#ffffff");
-        textSub.setAttribute("font-size", pin.highlightBox ? "27" : "24");
-        textSub.setAttribute("font-weight", pin.highlightBox ? "900" : "700");
-        textSub.setAttribute("text-anchor", "middle");
-        textSub.textContent = pin.subtitle;
-        g.appendChild(textSub);
+          const textTop = document.createElementNS("http://www.w3.org/2000/svg", "text");
+          textTop.setAttribute("x", pin.boxX + pin.boxW / 2);
+          textTop.setAttribute("y", pin.boxY + 38);
+          textTop.setAttribute("fill", pin.highlightBox ? "#fff2cc" : "#f7b52c");
+          textTop.setAttribute("font-size", "22");
+          textTop.setAttribute("font-weight", "800");
+          textTop.setAttribute("text-anchor", "middle");
+          textTop.textContent = pin.title;
+          g.appendChild(textTop);
 
-        el.pinsLayer.appendChild(g);
-        return { node: g, appearAt: pin.appearAt };
-      });
+          const textSub = document.createElementNS("http://www.w3.org/2000/svg", "text");
+          textSub.setAttribute("x", pin.boxX + pin.boxW / 2);
+          textSub.setAttribute("y", pin.boxY + 70);
+          textSub.setAttribute("fill", "#ffffff");
+          textSub.setAttribute("font-size", pin.highlightBox ? "27" : "24");
+          textSub.setAttribute("font-weight", pin.highlightBox ? "900" : "700");
+          textSub.setAttribute("text-anchor", "middle");
+          textSub.textContent = pin.subtitle;
+          g.appendChild(textSub);
+
+          el.pinsLayer.appendChild(g);
+          return { node: g, appearAt: pin.appearAt };
+        });
+      }
 
       // Сцена 4
-      el.s4Kicker.textContent = EPISODE.scene4.kicker;
-      el.s4Title.textContent = EPISODE.scene4.title;
       el.s4Grid.innerHTML = "";
-      s4BranchNodes = EPISODE.scene4.branches.map((b) => {
-        const card = document.createElement("div");
-        card.className = "branch-card";
-        card.innerHTML = `
-          <div class="branch-lang" style="background: ${b.tagBg}; color: ${b.tagColor};">${b.lang}</div>
-          <div class="branch-word">${b.word}</div>
-          <div class="branch-note">${b.note}</div>
-        `;
-        el.s4Grid.appendChild(card);
-        return card;
-      });
+      s4BranchNodes = [];
+      if (EPISODE.scene4) {
+        el.s4Kicker.textContent = EPISODE.scene4.kicker || "";
+        el.s4Title.textContent = EPISODE.scene4.title || "";
+        s4BranchNodes = (EPISODE.scene4.branches || []).map((b) => {
+          const card = document.createElement("div");
+          card.className = "branch-card";
+          card.innerHTML = `
+            <div class="branch-lang" style="background: ${b.tagBg || "#fde8e6"}; color: ${b.tagColor || "#b82d23"};">${b.lang}</div>
+            <div class="branch-word">${b.word}</div>
+            <div class="branch-note">${b.note}</div>
+          `;
+          el.s4Grid.appendChild(card);
+          return card;
+        });
+      }
+
+      // Сцена 5: character_scene
+      el.s5Characters.innerHTML = "";
+      s5CharNodes = [];
+      if (EPISODE.character_scene) {
+        const cs = EPISODE.character_scene;
+        el.s5Badge.textContent = cs.badge || "ДИАЛОГ ЭПОХ";
+        el.s5Title.textContent = cs.title || "";
+        s5CharNodes = (cs.characters || []).map((ch) => {
+          const slot = document.createElement("div");
+          slot.className = "char-slot";
+          slot.innerHTML = `
+            <div class="speech-bubble">${ch.bubble || ""}</div>
+            ${renderCharacterSvg(ch)}
+            <div class="char-role-label">${ch.role || ch.name || ""}</div>
+          `;
+          el.s5Characters.appendChild(slot);
+          return slot;
+        });
+      }
+
+      // Сцена 6: chart_scene
+      el.chartSvg.innerHTML = "";
+      s6LineEl = null;
+      s6PointNodes = [];
+      if (EPISODE.chart_scene) {
+        const ch = EPISODE.chart_scene;
+        el.s6Badge.textContent = ch.badge || "ИСТОРИЧЕСКИЙ ГРАФИК";
+        el.s6Title.textContent = ch.title || "";
+        const points = ch.points || [];
+        const padLeft = 110;
+        const padRight = 90;
+        const padTop = 70;
+        const padBottom = 100;
+        const plotW = 1560 - padLeft - padRight;
+        const plotH = 620 - padTop - padBottom;
+
+        // Горизонтальная сетка и оси
+        for (let i = 0; i <= 4; i++) {
+          const y = padTop + (plotH * i) / 4;
+          const gridLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+          gridLine.setAttribute("x1", padLeft);
+          gridLine.setAttribute("y1", y);
+          gridLine.setAttribute("x2", padLeft + plotW);
+          gridLine.setAttribute("y2", y);
+          gridLine.setAttribute("stroke", "#e6dfd1");
+          gridLine.setAttribute("stroke-width", "2");
+          el.chartSvg.appendChild(gridLine);
+        }
+
+        if (points.length > 0) {
+          const coords = points.map((pt, idx) => {
+            const x = points.length === 1
+              ? padLeft + plotW / 2
+              : padLeft + (plotW * idx) / (points.length - 1);
+            const val = clamp(Number(pt.value || 0), 0, 100);
+            const y = padTop + plotH - (val / 100) * plotH;
+            return { x, y, label: pt.label || "", note: pt.note || "" };
+          });
+
+          const pathD = coords.map((c, idx) => `${idx === 0 ? "M" : "L"} ${c.x.toFixed(1)} ${c.y.toFixed(1)}`).join(" ");
+          s6LineEl = document.createElementNS("http://www.w3.org/2000/svg", "path");
+          s6LineEl.setAttribute("d", pathD);
+          s6LineEl.setAttribute("fill", "none");
+          s6LineEl.setAttribute("stroke", "#d94136");
+          s6LineEl.setAttribute("stroke-width", "7");
+          s6LineEl.setAttribute("stroke-linecap", "round");
+          s6LineEl.setAttribute("stroke-linejoin", "round");
+          el.chartSvg.appendChild(s6LineEl);
+
+          chartLineLength = s6LineEl.getTotalLength() || 1200;
+          s6LineEl.style.strokeDasharray = chartLineLength;
+          s6LineEl.style.strokeDashoffset = chartLineLength;
+
+          coords.forEach((c) => {
+            const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+            g.setAttribute("opacity", "0");
+
+            const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            dot.setAttribute("cx", c.x);
+            dot.setAttribute("cy", c.y);
+            dot.setAttribute("r", "11");
+            dot.setAttribute("fill", "#1c1c21");
+            dot.setAttribute("stroke", "#f7b52c");
+            dot.setAttribute("stroke-width", "4");
+            g.appendChild(dot);
+
+            const axisLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            axisLabel.setAttribute("x", c.x);
+            axisLabel.setAttribute("y", padTop + plotH + 46);
+            axisLabel.setAttribute("fill", "#1c1c21");
+            axisLabel.setAttribute("font-size", "24");
+            axisLabel.setAttribute("font-weight", "800");
+            axisLabel.setAttribute("text-anchor", "middle");
+            axisLabel.textContent = c.label;
+            g.appendChild(axisLabel);
+
+            if (c.note) {
+              const noteText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+              noteText.setAttribute("x", c.x);
+              noteText.setAttribute("y", Math.max(36, c.y - 22));
+              noteText.setAttribute("fill", "#5a5852");
+              noteText.setAttribute("font-size", "20");
+              noteText.setAttribute("font-weight", "700");
+              noteText.setAttribute("text-anchor", "middle");
+              noteText.textContent = c.note;
+              g.appendChild(noteText);
+            }
+
+            el.chartSvg.appendChild(g);
+            s6PointNodes.push(g);
+          });
+        }
+      }
+
+      // Сцена 7: window_scene
+      if (EPISODE.window_scene) {
+        const ws = EPISODE.window_scene;
+        el.s7WindowTitle.textContent = ws.windowTitle || "LEXICON_NOTE.TXT";
+        el.s7Tag.textContent = ws.tag || "СПРАВКА";
+        el.s7Kicker.textContent = ws.kicker || "";
+        el.s7Headline.textContent = ws.headline || "";
+        el.s7Text.textContent = ws.text || "";
+      }
 
       const scrubber = document.getElementById("scrubber");
       if (scrubber) scrubber.max = TOTAL_DURATION_MS;
@@ -746,13 +1190,17 @@
      */
     window.renderAt = function(t) {
       t = clamp(t, 0, TOTAL_DURATION_MS);
-      const [s1Start, s1End] = EPISODE.timings.scene1;
-      const [s2Start, s2End] = EPISODE.timings.scene2;
-      const [s3Start, s3End] = EPISODE.timings.scene3;
-      const [s4Start, s4End] = EPISODE.timings.scene4;
+
+      const [s1Start, s1End] = getSceneRange("scene1", [0, 0]);
+      const [s2Start, s2End] = getSceneRange("scene2", [0, 0]);
+      const [s3Start, s3End] = getSceneRange("scene3", [0, 0]);
+      const [s4Start, s4End] = getSceneRange("scene4", [0, 0]);
+      const [s5Start, s5End] = getSceneRange("character_scene", [0, 0]);
+      const [s6Start, s6End] = getSceneRange("chart_scene", [0, 0]);
+      const [s7Start, s7End] = getSceneRange("window_scene", [0, 0]);
 
       // СЦЕНА 1
-      const s1Visible = t >= s1Start && t < s1End;
+      const s1Visible = s1End > s1Start && t >= s1Start && t < s1End;
       el.s1.style.opacity = s1Visible ? 1 : 0;
       if (s1Visible) {
         const pBadge = easeOutCubic(progress(t, s1Start + 100, s1Start + 600));
@@ -777,9 +1225,9 @@
       }
 
       // СЦЕНА 2
-      const s2Visible = t >= s2Start && t < s2End;
+      const s2Visible = s2End > s2Start && t >= s2Start && t < s2End;
       el.s2.style.opacity = s2Visible ? 1 : 0;
-      if (s2Visible) {
+      if (s2Visible && EPISODE.scene2 && Array.isArray(EPISODE.scene2.stages) && EPISODE.scene2.stages.length > 0) {
         const stages = EPISODE.scene2.stages;
         const currentStage = stages.find(s => t >= s.start && t < s.end) || stages[stages.length - 1];
         const localP = easeOutCubic(progress(t, currentStage.start, currentStage.start + 450));
@@ -797,10 +1245,10 @@
       }
 
       // СЦЕНА 3: КАРТА
-      const s3Visible = t >= s3Start && t < s3End;
+      const s3Visible = s3End > s3Start && t >= s3Start && t < s3End;
       el.s3.style.opacity = s3Visible ? 1 : 0;
-      if (s3Visible) {
-        const [rStart, rEnd] = EPISODE.scene3.routeAnim;
+      if (s3Visible && EPISODE.scene3) {
+        const [rStart, rEnd] = EPISODE.scene3.routeAnim || [s3Start + 300, s3End - 500];
         const routeP = easeOutCubic(progress(t, rStart, rEnd));
         el.route.style.strokeDashoffset = routeTotalLength * (1 - routeP);
 
@@ -811,7 +1259,7 @@
       }
 
       // СЦЕНА 4: ВЕТВЛЕНИЕ
-      const s4Visible = t >= s4Start && t <= s4End;
+      const s4Visible = s4End > s4Start && t >= s4Start && t <= s4End;
       el.s4.style.opacity = s4Visible ? 1 : 0;
       if (s4Visible) {
         const pRoot = easeOutCubic(progress(t, s4Start + 200, s4Start + 800));
@@ -826,8 +1274,44 @@
         });
       }
 
+      // СЦЕНА 5: ПЕРСОНАЖИ (character_scene)
+      const s5Visible = s5End > s5Start && t >= s5Start && t <= s5End;
+      el.s5.style.opacity = s5Visible ? 1 : 0;
+      if (s5Visible) {
+        s5CharNodes.forEach((slot, idx) => {
+          const start = s5Start + 250 + idx * 500;
+          const p = easeOutBack(progress(t, start, start + 600));
+          slot.style.opacity = clamp(p, 0, 1);
+          slot.style.transform = `translateY(${(1 - p) * 40}px) scale(${0.92 + 0.08 * p})`;
+        });
+      }
+
+      // СЦЕНА 6: ГРАФИК (chart_scene)
+      const s6Visible = s6End > s6Start && t >= s6Start && t <= s6End;
+      el.s6.style.opacity = s6Visible ? 1 : 0;
+      if (s6Visible && s6LineEl) {
+        const lineP = easeOutCubic(progress(t, s6Start + 300, s6Start + 2200));
+        s6LineEl.style.strokeDashoffset = chartLineLength * (1 - lineP);
+
+        const totalPts = Math.max(s6PointNodes.length, 1);
+        s6PointNodes.forEach((ptNode, idx) => {
+          const ptAppear = s6Start + 300 + (idx / totalPts) * 1900;
+          const ptOp = easeOutCubic(progress(t, ptAppear, ptAppear + 400));
+          ptNode.setAttribute("opacity", ptOp.toFixed(3));
+        });
+      }
+
+      // СЦЕНА 7: ОКНО ИНТЕРФЕЙСА (window_scene)
+      const s7Visible = s7End > s7Start && t >= s7Start && t <= s7End;
+      el.s7.style.opacity = s7Visible ? 1 : 0;
+      if (s7Visible) {
+        const pWin = easeOutBack(progress(t, s7Start + 200, s7Start + 800));
+        el.s7Window.style.opacity = clamp(pWin, 0, 1);
+        el.s7Window.style.transform = `translateY(${(1 - pWin) * 32}px) scale(${0.95 + 0.05 * pWin})`;
+      }
+
       // СУБТИТРЫ
-      const activeSub = EPISODE.subtitles.find(s => t >= s.start && t <= s.end);
+      const activeSub = (EPISODE.subtitles || []).find(s => t >= s.start && t <= s.end);
       if (activeSub) {
         el.subText.textContent = activeSub.text;
         el.subText.style.opacity = 1;
@@ -879,19 +1363,34 @@
       fitViewport();
 
       let currentTime = 0;
-      let isPlaying = true;
+      let isPlaying = false;
       let lastFrameTs = performance.now();
 
       const scrubber = document.getElementById("scrubber");
       const timeDisplay = document.getElementById("time-display");
       const btnPlay = document.getElementById("btn-play");
       const fileInput = document.getElementById("json-file-input");
+      const audioInput = document.getElementById("audio-file-input");
+      const audioEl = document.getElementById("voice-audio");
 
       function formatMs(ms) {
         const totalSec = ms / 1000;
         const mins = Math.floor(totalSec / 60).toString().padStart(2, "0");
         const secs = (totalSec % 60).toFixed(1).padStart(4, "0");
         return `${mins}:${secs}`;
+      }
+
+      function syncAudioState(forceSeek = false) {
+        if (!audioEl.src) return;
+        const targetSec = currentTime / 1000;
+        if (forceSeek || Math.abs(audioEl.currentTime - targetSec) > 0.08) {
+          audioEl.currentTime = targetSec;
+        }
+        if (isPlaying && audioEl.paused) {
+          audioEl.play().catch(() => {});
+        } else if (!isPlaying && !audioEl.paused) {
+          audioEl.pause();
+        }
       }
 
       fileInput.addEventListener("change", (e) => {
@@ -904,6 +1403,8 @@
             applyEpisodeData(parsed);
             currentTime = 0;
             window.renderAt(0);
+            syncAudioState(true);
+            timeDisplay.textContent = `${formatMs(currentTime)} / ${formatMs(TOTAL_DURATION_MS)}`;
           } catch (err) {
             console.error("Некорректный JSON-файл эпизода:", err);
           }
@@ -911,22 +1412,35 @@
         reader.readAsText(file, "utf-8");
       });
 
+      audioInput.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        audioEl.src = URL.createObjectURL(file);
+        audioEl.load();
+        syncAudioState(true);
+      });
+
       btnPlay.addEventListener("click", () => {
         isPlaying = !isPlaying;
         lastFrameTs = performance.now();
+        syncAudioState(true);
       });
 
       scrubber.addEventListener("input", (e) => {
         isPlaying = false;
         currentTime = Number(e.target.value);
         window.renderAt(currentTime);
+        syncAudioState(true);
         timeDisplay.textContent = `${formatMs(currentTime)} / ${formatMs(TOTAL_DURATION_MS)}`;
       });
 
       function tick(now) {
         if (isPlaying) {
           currentTime += now - lastFrameTs;
-          if (currentTime > TOTAL_DURATION_MS) currentTime = 0;
+          if (currentTime > TOTAL_DURATION_MS) {
+            currentTime = 0;
+            syncAudioState(true);
+          }
           window.renderAt(currentTime);
           scrubber.value = Math.floor(currentTime);
           timeDisplay.textContent = `${formatMs(currentTime)} / ${formatMs(TOTAL_DURATION_MS)}`;
@@ -936,6 +1450,7 @@
       }
 
       window.renderAt(0);
+      timeDisplay.textContent = `${formatMs(0)} / ${formatMs(TOTAL_DURATION_MS)}`;
       requestAnimationFrame(tick);
     }
   </script>

@@ -10,6 +10,7 @@
 
 Пример запуска:
     python render.py --episode episodes/ep01_apelsin.json --out out/apelsin.mp4 --fps 30
+    python render.py --episode episodes/ep02_test.json --audio voice/ep02.mp3 --out out/ep02.mp4 --fps 30
 """
 
 import argparse
@@ -20,10 +21,18 @@ import subprocess
 import sys
 import time
 from pathlib import Path
+from typing import Optional
 from playwright.sync_api import sync_playwright
 
 
-def render_video(html_path: Path, episode_path: Path, output_path: Path, fps: int = 30, crf: int = 18) -> None:
+def render_video(
+    html_path: Path,
+    episode_path: Path,
+    output_path: Path,
+    fps: int = 30,
+    crf: int = 18,
+    audio_path: Optional[Path] = None,
+) -> None:
     """
     Выполняет покадровый рендер HTML-страницы с загруженным JSON-эпизодом в MP4-файл.
 
@@ -33,11 +42,14 @@ def render_video(html_path: Path, episode_path: Path, output_path: Path, fps: in
         output_path: Путь для сохранения итогового видеофайла.
         fps: Частота кадров (30 или 60).
         crf: Качество H.264 (16-20 — визуально без потерь, меньше число = выше качество).
+        audio_path: Необязательный путь к аудиофайлу озвучки для подмешивания в итоговый MP4.
     """
     if not html_path.exists():
         raise FileNotFoundError(f"HTML-файл не найден: {html_path.resolve()}")
     if not episode_path.exists():
         raise FileNotFoundError(f"Файл эпизода не найден: {episode_path.resolve()}")
+    if audio_path is not None and not audio_path.exists():
+        raise FileNotFoundError(f"Аудиофайл не найден: {audio_path.resolve()}")
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -50,6 +62,8 @@ def render_video(html_path: Path, episode_path: Path, output_path: Path, fps: in
     file_url = f"{html_path.resolve().as_uri()}?export=1&data={episode_b64}"
 
     print(f"🎬 Запуск рендера: {episode_path.name} -> {output_path.name} ({fps} FPS)")
+    if audio_path is not None:
+        print(f"🔊 Подмешиваем аудио: {audio_path.name}")
 
     with sync_playwright() as p:
         # Запускаем Chromium в безголовом режиме с фиксированным окном 1920x1080
@@ -81,13 +95,29 @@ def render_video(html_path: Path, episode_path: Path, output_path: Path, fps: in
                 "-vcodec", "mjpeg",          # Формат входных кадров (быстрее PNG при сохранении качества)
                 "-framerate", str(fps),      # Частота кадров входного потока
                 "-i", "-",                   # Вход из stdin
+            ]
+
+            if audio_path is not None:
+                ffmpeg_cmd.extend(["-i", str(audio_path.resolve())])
+
+            ffmpeg_cmd.extend([
                 "-c:v", "libx264",           # Кодек H.264 (совместим с YouTube и любыми монтажными программами)
                 "-pix_fmt", "yuv420p",       # Стандартное цветовое пространство для YouTube/плееров
                 "-crf", str(crf),            # Постоянный фактор качества
                 "-preset", "medium",         # Баланс скорости кодирования и сжатия
+            ])
+
+            if audio_path is not None:
+                ffmpeg_cmd.extend([
+                    "-c:a", "aac",
+                    "-b:a", "192k",
+                    "-shortest",
+                ])
+
+            ffmpeg_cmd.extend([
                 "-movflags", "+faststart",   # Оптимизация метаданных для быстрого старта воспроизведения
                 str(output_path.resolve()),
-            ]
+            ])
 
             ffmpeg_proc = subprocess.Popen(
                 ffmpeg_cmd,
@@ -143,6 +173,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Рендер HTML-анимации в MP4 (1920x1080)")
     parser.add_argument("--html", type=Path, default=Path("index.html"), help="Путь к HTML-файлу движка (по умолчанию index.html)")
     parser.add_argument("--episode", type=Path, default=Path("episodes/ep01_apelsin.json"), help="Путь к JSON-файлу эпизода")
+    parser.add_argument("--audio", type=Path, default=None, help="Необязательный аудиофайл озвучки для подмешивания")
     parser.add_argument("--out", type=Path, default=Path("out/output.mp4"), help="Выходной MP4-файл (по умолчанию out/output.mp4)")
     parser.add_argument("--fps", type=int, default=30, help="Частота кадров (по умолчанию 30)")
     parser.add_argument("--crf", type=int, default=18, help="Качество H.264 CRF (по умолчанию 18)")
@@ -156,6 +187,7 @@ def main() -> None:
             output_path=args.out,
             fps=args.fps,
             crf=args.crf,
+            audio_path=args.audio,
         )
     except Exception as exc:
         print(f"\n❌ Ошибка рендера: {exc}", file=sys.stderr)
