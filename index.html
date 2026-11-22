@@ -1146,7 +1146,7 @@
 
         // Для рендера первой главы сразу готовим её сцены (если главы есть)
         if (CHAPTERS) {
-        applyChapterScenes(CHAPTERS[0].scenes || {});
+        applyChapterScenes(CHAPTERS[0]);
         } else {
         applyChapterScenes(EPISODE);
         }
@@ -1175,7 +1175,7 @@
         });
         if (activeCh && activeChapterKey !== activeCh.id) {
           activeChapterKey = activeCh.id;
-          applyChapterScenes(activeCh.scenes || {});
+          applyChapterScenes(activeCh);
         }
       }
 
