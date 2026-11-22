@@ -1512,8 +1512,45 @@
         requestAnimationFrame(tick);
       }
 
-      window.renderAt(0);
-      timeDisplay.textContent = `${formatMs(0)} / ${formatMs(TOTAL_DURATION_MS)}`;
+      // Загрузка опубликованного JSON по имени файла: ?episode=deepseek_json_...
+      // У таких отдельных выпусков таймкоды могут начинаться не с нуля.
+      async function loadEpisodeFromUrl() {
+        const episodeParam = urlParams.get("episode");
+        if (!episodeParam) {
+          window.renderAt(0);
+          timeDisplay.textContent = `${formatMs(0)} / ${formatMs(TOTAL_DURATION_MS)}`;
+          return;
+        }
+
+        const episodeName = episodeParam.replace(/\\.json$/i, "");
+        if (!/^[a-zA-Z0-9_-]+$/.test(episodeName)) {
+          console.error("Некорректное имя JSON-эпизода:", episodeParam);
+          window.renderAt(0);
+          return;
+        }
+
+        try {
+          const response = await fetch(`episodes/${episodeName}.json`);
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const parsed = await response.json();
+          applyEpisodeData(parsed);
+
+          const spans = (Array.isArray(parsed.chapters) && parsed.chapters.length
+            ? parsed.chapters.map(chapterSpan)
+            : [chapterSpan(parsed)]).filter(Boolean);
+          currentTime = spans.length ? Math.min(...spans.map(span => span[0])) : 0;
+
+          scrubber.max = TOTAL_DURATION_MS;
+          scrubber.value = Math.floor(currentTime);
+          window.renderAt(currentTime);
+          timeDisplay.textContent = `${formatMs(currentTime)} / ${formatMs(TOTAL_DURATION_MS)}`;
+        } catch (err) {
+          console.error("Не удалось загрузить JSON-эпизод:", err);
+          window.renderAt(0);
+        }
+      }
+
+      loadEpisodeFromUrl();
       requestAnimationFrame(tick);
     }
   </script>
