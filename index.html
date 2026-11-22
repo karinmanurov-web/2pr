@@ -395,17 +395,25 @@
       justify-content: center;
       gap: 110px;
       flex: 1;
-      padding-top: 20px;
+      padding-top: 8px;
+      /* Нижний запас: подписи остаются над плашкой субтитров (до трёх строк). */
+      padding-bottom: 130px;
     }
 
     .char-slot {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 18px;
+      gap: 12px;
       max-width: 540px;
     }
 
+    .char-figure {
+      display: block;
+      width: 220px;
+      height: 246px;
+      flex: none;
+    }
     .speech-bubble {
       background: #ffffff;
       color: var(--ink-dark);
@@ -810,28 +818,28 @@
       const mood = charCfg.mood || "curious";
       const hat = charCfg.hat || "none";
 
-      const browLeft = mood === "surprised" ? "M 82 72 Q 92 60 102 72" : "M 82 76 L 102 74";
-      const browRight = mood === "surprised" ? "M 118 72 Q 128 60 138 72" : "M 118 74 L 138 76";
+      const browLeft = mood === "surprised" ? "M 84 52 Q 94 40 104 52" : "M 84 56 L 104 54";
+      const browRight = mood === "surprised" ? "M 116 52 Q 126 40 136 52" : "M 116 54 L 136 56";
       const mouth = mood === "happy"
-        ? "M 96 104 Q 110 118 124 104"
+        ? "M 96 84 Q 110 98 124 84"
         : mood === "surprised"
-          ? "M 104 106 A 6 7 0 1 0 116 106 A 6 7 0 1 0 104 106"
-          : "M 98 108 Q 110 103 122 108";
+          ? "M 104 86 A 6 7 0 1 0 116 86 A 6 7 0 1 0 104 86"
+          : "M 98 88 Q 110 83 122 88";
 
       let hatSvg = "";
       if (hat === "cap") {
-        hatSvg = `<path d="M 74 64 Q 110 28 146 64 Z" fill="#f7b52c" stroke="#1c1c21" stroke-width="4"/><rect x="70" y="60" width="92" height="9" rx="4" fill="#1c1c21"/>`;
+        hatSvg = `<path d="M 74 44 Q 110 8 146 44 Z" fill="#f7b52c" stroke="#1c1c21" stroke-width="4"/><rect x="70" y="40" width="92" height="9" rx="4" fill="#1c1c21"/>`;
       } else if (hat === "merchant") {
-        hatSvg = `<ellipse cx="110" cy="62" rx="48" ry="10" fill="#d94136" stroke="#1c1c21" stroke-width="4"/><path d="M 82 60 L 90 36 L 130 36 L 138 60 Z" fill="#d94136" stroke="#1c1c21" stroke-width="4"/>`;
+        hatSvg = `<ellipse cx="110" cy="42" rx="48" ry="10" fill="#d94136" stroke="#1c1c21" stroke-width="4"/><path d="M 82 40 L 90 16 L 130 16 L 138 40 Z" fill="#d94136" stroke="#1c1c21" stroke-width="4"/>`;
       }
 
       return `
-        <svg width="220" height="290" viewBox="0 0 220 290">
-          <path d="M 52 282 C 52 212, 168 212, 168 282 Z" fill="${shirt}" stroke="#1c1c21" stroke-width="5"/>
-          <rect x="97" y="136" width="26" height="32" rx="10" fill="#f2c9a0" stroke="#1c1c21" stroke-width="4"/>
-          <circle cx="110" cy="96" r="42" fill="#f2c9a0" stroke="#1c1c21" stroke-width="5"/>
-          <circle cx="94" cy="92" r="5.5" fill="#1c1c21"/>
-          <circle cx="126" cy="92" r="5.5" fill="#1c1c21"/>
+        <svg class="char-figure" width="220" height="246" viewBox="0 0 220 246">
+          <path d="M 46 234 C 46 108, 174 108, 174 234 Z" fill="${shirt}" stroke="#1c1c21" stroke-width="5"/>
+          <rect x="98" y="108" width="24" height="42" rx="10" fill="#f2c9a0" stroke="#1c1c21" stroke-width="4"/>
+          <circle cx="110" cy="76" r="40" fill="#f2c9a0" stroke="#1c1c21" stroke-width="5"/>
+          <circle cx="94" cy="72" r="5.5" fill="#1c1c21"/>
+          <circle cx="126" cy="72" r="5.5" fill="#1c1c21"/>
           <path d="${browLeft}" fill="none" stroke="#1c1c21" stroke-width="4" stroke-linecap="round"/>
           <path d="${browRight}" fill="none" stroke="#1c1c21" stroke-width="4" stroke-linecap="round"/>
           <path d="${mouth}" fill="none" stroke="#1c1c21" stroke-width="4" stroke-linecap="round"/>
