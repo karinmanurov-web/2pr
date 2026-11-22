@@ -1,4 +1,3 @@
-Отлично, давай писать. Произошла ошибка, и код пропал, остался лишь файл html:
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -6,9 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Etymology Video Engine — 1920x1080</title>
   <style>
-    /* ==========================================================================
-       1. СБРОС И БАЗОВАЯ НАСТРОЙКА ХОЛСТА 1920x1080
-       ========================================================================== */
     * {
       box-sizing: border-box;
       margin: 0;
@@ -19,7 +15,6 @@
     :root {
       --bg-dark: #141418;
       --bg-paper: #f3efe6;
-      --bg-paper-edge: #dcd5c5;
       --accent-yellow: #f7b52c;
       --accent-red: #d94136;
       --accent-blue: #2b5b84;
@@ -41,7 +36,6 @@
       overflow: hidden;
     }
 
-    /* Контейнер для масштабирования в окне браузера при превью */
     #viewport-wrapper {
       position: relative;
       width: 1920px;
@@ -52,7 +46,6 @@
       background: var(--bg-dark);
     }
 
-    /* В режиме экспорта (?export=1) убираем любые отступы и рамки */
     body.export-mode {
       background: transparent;
       display: block;
@@ -65,9 +58,6 @@
       display: none !important;
     }
 
-    /* ==========================================================================
-       2. СЦЕНЫ И ОБЩИЕ ВИЗУАЛЬНЫЕ ЭЛЕМЕНТЫ (КАК НА РЕФЕРЕНСАХ)
-       ========================================================================== */
     .stage {
       position: absolute;
       inset: 0;
@@ -86,19 +76,16 @@
       will-change: transform, opacity;
     }
 
-    /* Тёплый бумажный фон с виньеткой (как на скриншоте с графиком) */
     .theme-paper {
       background: radial-gradient(circle at center, #f9f6ef 45%, #e2dac9 100%);
       color: var(--ink-dark);
     }
 
-    /* Тёмный акцентный фон (как на скриншоте с карточкой факта) */
     .theme-dark {
       background: radial-gradient(circle at center, #1d1e26 0%, #111116 100%);
       color: #ffffff;
     }
 
-    /* Лёгкая плёночная виньетка поверх всего кадра */
     .vignette-overlay {
       position: absolute;
       inset: 0;
@@ -107,7 +94,6 @@
       z-index: 50;
     }
 
-    /* Плашки-бейджи в стиле референсов */
     .pill-badge {
       display: inline-flex;
       align-items: center;
@@ -132,12 +118,6 @@
       color: var(--ink-dark);
     }
 
-    .pill-red {
-      background: var(--accent-red);
-      color: #ffffff;
-    }
-
-    /* Субтитры в нижней части экрана */
     #subtitle-bar {
       position: absolute;
       bottom: 54px;
@@ -162,7 +142,6 @@
       opacity: 0;
     }
 
-    /* Служебная метка в левом нижнем углу (как мелкая сноска на графике) */
     .footnote {
       position: absolute;
       bottom: 28px;
@@ -172,9 +151,6 @@
       font-weight: 500;
     }
 
-    /* ==========================================================================
-       3. СТИЛИ КОНКРЕТНЫХ ШАБЛОНОВ СЦЕН
-       ========================================================================== */
     /* Сцена 1: Титульная карточка */
     .title-layout {
       display: flex;
@@ -230,13 +206,15 @@
       color: #ffffff;
       padding: 24px 56px;
       border-radius: 16px;
-      font-size: 56px;
+      font-size: 52px;
       font-weight: 900;
       letter-spacing: 0.03em;
       text-transform: uppercase;
+      text-align: center;
+      max-width: 1680px;
     }
 
-    /* Сцена 2: Пошаговая трансформация слова (Word Morph) */
+    /* Сцена 2: Пошаговая трансформация слова */
     .morph-layout {
       display: flex;
       flex-direction: column;
@@ -260,7 +238,6 @@
       font-size: 24px;
       font-weight: 700;
       color: var(--ink-muted);
-      transition: none;
     }
 
     .timeline-step.active {
@@ -310,7 +287,7 @@
       font-weight: 600;
     }
 
-    /* Сцена 3: Карта-маршрут миграции (SVG) */
+    /* Сцена 3: Карта-маршрут миграции */
     .map-layout {
       width: 100%;
       height: 100%;
@@ -374,8 +351,6 @@
       font-size: 22px;
       font-weight: 800;
       margin-bottom: 18px;
-      background: #f0ece1;
-      color: var(--ink-dark);
     }
 
     .branch-word {
@@ -391,9 +366,7 @@
       font-weight: 600;
     }
 
-    /* ==========================================================================
-       4. ПАНЕЛЬ ОТЛАДКИ В БРАУЗЕРЕ (СКРЫВАЕТСЯ ПРИ РЕНДЕРЕ)
-       ========================================================================== */
+    /* Панель отладки в браузере */
     #dev-controls {
       position: fixed;
       bottom: 16px;
@@ -406,24 +379,25 @@
       border-radius: 14px;
       display: flex;
       align-items: center;
-      gap: 18px;
+      gap: 16px;
       color: #fff;
       z-index: 9999;
       font-size: 14px;
     }
 
-    #dev-controls button {
+    #dev-controls button, #dev-controls label.file-btn {
       background: var(--accent-yellow);
       color: #111;
       border: none;
-      padding: 8px 16px;
+      padding: 8px 14px;
       border-radius: 8px;
       font-weight: 700;
       cursor: pointer;
+      white-space: nowrap;
     }
 
     #dev-controls input[type="range"] {
-      width: 420px;
+      width: 360px;
       cursor: pointer;
     }
 
@@ -438,74 +412,58 @@
   <div id="viewport-wrapper">
     <div class="stage" id="stage">
 
-      <!-- ======================================================================
-           СЦЕНА 1: ТИТУЛЬНАЯ КАРТОЧКА (0.0с — 4.5с)
-           ====================================================================== -->
+      <!-- СЦЕНА 1: ТИТУЛЬНАЯ КАРТОЧКА -->
       <section class="scene theme-dark" id="scene-1">
         <div class="title-layout">
           <div class="pill-badge pill-dark" id="s1-badge">ЭТИМОЛОГИЯ • ПУТЬ СЛОВА</div>
 
           <div class="hero-cards-row">
             <div class="word-sticker" id="s1-card-1" style="transform: rotate(-3deg);">
-              <div class="lang-tag">Нидерландский</div>
-              <div class="word-big">appelsien</div>
+              <div class="lang-tag" id="s1-c1-lang">Язык 1</div>
+              <div class="word-big" id="s1-c1-word">word 1</div>
             </div>
 
             <div class="word-sticker" id="s1-card-2" style="transform: rotate(2deg);">
-              <div class="lang-tag">Русский</div>
-              <div class="word-big">апельсин</div>
+              <div class="lang-tag" id="s1-c2-lang">Язык 2</div>
+              <div class="word-big" id="s1-c2-word">word 2</div>
             </div>
 
             <div class="yellow-stamp" id="s1-stamp" style="transform: rotate(-2deg);">
-              <div style="font-size: 22px; text-transform: uppercase;">Буквальный перевод:</div>
-              <div style="font-size: 46px; margin-top: 4px;">«КИТАЙСКОЕ ЯБЛОКО»</div>
+              <div style="font-size: 22px; text-transform: uppercase;" id="s1-stamp-label">Буквальный перевод:</div>
+              <div style="font-size: 46px; margin-top: 4px;" id="s1-stamp-value">«СМЫСЛ»</div>
             </div>
           </div>
 
-          <div class="main-banner-title" id="s1-banner">
-            КАК ФРУКТ ИЗ АЗИИ ПОЛУЧИЛ ЕВРОПЕЙСКОЕ ИМЯ
-          </div>
+          <div class="main-banner-title" id="s1-banner">ЗАГОЛОВОК ВЫПУСКА</div>
         </div>
       </section>
 
-      <!-- ======================================================================
-           СЦЕНА 2: ПОШАГОВАЯ ТРАНСФОРМАЦИЯ СЛОВА (4.5с — 11.5с)
-           ====================================================================== -->
+      <!-- СЦЕНА 2: ПОШАГОВАЯ ТРАНСФОРМАЦИЯ СЛОВА -->
       <section class="scene theme-paper" id="scene-2">
         <div class="morph-layout">
-          <div class="morph-timeline" id="s2-steps">
-            <div class="timeline-step" data-step="0">1. Китай</div>
-            <div class="timeline-step" data-step="1">2. Португалия</div>
-            <div class="timeline-step" data-step="2">3. Нидерланды</div>
-            <div class="timeline-step" data-step="3">4. Россия (XVIII век)</div>
-          </div>
+          <div class="morph-timeline" id="s2-steps"></div>
 
           <div class="morph-card" id="s2-card">
-            <div class="morph-era" id="s2-era">ЭПОХА ВЕЛИКИХ ГЕОГРАФИЧЕСКИХ ОТКРЫТИЙ</div>
-            <div class="morph-word" id="s2-word">sinaasappel</div>
-            <div class="morph-meaning" id="s2-meaning">«яблоко из Китая» (Sina + appel)</div>
+            <div class="morph-era" id="s2-era">ЭТАП</div>
+            <div class="morph-word" id="s2-word">слово</div>
+            <div class="morph-meaning" id="s2-meaning">пояснение</div>
           </div>
         </div>
-        <div class="footnote">схема фонетического перехода • упрощённая реконструкция</div>
+        <div class="footnote" id="s2-footnote">схема фонетического перехода • упрощённая реконструкция</div>
       </section>
 
-      <!-- ======================================================================
-           СЦЕНА 3: КАРТА-МАРШРУТ МИГРАЦИИ (11.5с — 17.5с)
-           ====================================================================== -->
+      <!-- СЦЕНА 3: КАРТА-МАРШРУТ МИГРАЦИИ -->
       <section class="scene theme-paper" id="scene-3">
         <div class="map-layout">
           <div class="map-header">
-            <div class="pill-badge pill-yellow">МАРШРУТ ЗАИМСТВОВАНИЯ • XVI–XVIII ВВ.</div>
-            <h2>Торговый путь слова через континенты</h2>
+            <div class="pill-badge pill-yellow" id="s3-badge">МАРШРУТ ЗАИМСТВОВАНИЯ</div>
+            <h2 id="s3-title">Торговый путь слова</h2>
           </div>
 
-          <!-- Векторная схема маршрута -->
-          <svg width="1920" height="1080" viewBox="0 0 1920 1080">
-            <!-- Стилизованные контуры материков (фон) -->
+          <svg width="1920" height="1080" viewBox="0 0 1920 1080" id="map-svg">
             <path d="M180,340 Q420,240 680,310 T1180,320 T1680,420 L1720,760 Q1350,820 1020,720 T480,790 L160,680 Z"
                   fill="#e7dfd0" stroke="#cfc5b2" stroke-width="4" />
 
-            <!-- Сетка координат -->
             <g stroke="rgba(28,28,33,0.06)" stroke-width="2">
               <line x1="0" y1="360" x2="1920" y2="360" />
               <line x1="0" y1="540" x2="1920" y2="540" />
@@ -515,95 +473,34 @@
               <line x1="1440" y1="0" x2="1440" y2="1080" />
             </g>
 
-            <!-- Линия маршрута: Южный Китай -> Лиссабон -> Амстердам -> Санкт-Петербург -->
             <path id="migration-route"
-                  d="M 1520 660 Q 1080 860 360 620 Q 390 480 540 430 Q 720 380 890 340"
+                  d=""
                   fill="none"
                   stroke="#d94136"
                   stroke-width="8"
-                  stroke-linecap="round"
-                  stroke-dasharray="1650"
-                  stroke-dashoffset="1650" />
+                  stroke-linecap="round" />
 
-            <!-- Точка 1: Южный Китай -->
-            <g id="pin-1" opacity="0">
-              <circle cx="1520" cy="660" r="16" fill="#d94136" />
-              <circle cx="1520" cy="660" r="28" fill="none" stroke="#d94136" stroke-width="4" />
-              <rect x="1370" y="700" width="300" height="86" rx="14" fill="#1c1c21" />
-              <text x="1520" y="738" fill="#f7b52c" font-size="22" font-weight="800" text-anchor="middle">1. ЮЖНЫЙ КИТАЙ</text>
-              <text x="1520" y="768" fill="#ffffff" font-size="24" font-weight="700" text-anchor="middle">Родина сладкого сорта</text>
-            </g>
-
-            <!-- Точка 2: Португалия -->
-            <g id="pin-2" opacity="0">
-              <circle cx="360" cy="620" r="16" fill="#2b5b84" />
-              <rect x="190" y="655" width="340" height="86" rx="14" fill="#1c1c21" />
-              <text x="360" y="693" fill="#f7b52c" font-size="22" font-weight="800" text-anchor="middle">2. ПОРТУГАЛИЯ (XVI в.)</text>
-              <text x="360" y="723" fill="#ffffff" font-size="24" font-weight="700" text-anchor="middle">Морской завоз в Европу</text>
-            </g>
-
-            <!-- Точка 3: Нидерланды -->
-            <g id="pin-3" opacity="0">
-              <circle cx="540" cy="430" r="16" fill="#2e8555" />
-              <rect x="330" y="295" width="380" height="96" rx="14" fill="#1c1c21" />
-              <text x="520" y="335" fill="#f7b52c" font-size="22" font-weight="800" text-anchor="middle">3. НИДЕРЛАНДЫ (XVII в.)</text>
-              <text x="520" y="368" fill="#ffffff" font-size="26" font-weight="800" text-anchor="middle">appelsien / sinaasappel</text>
-            </g>
-
-            <!-- Точка 4: Россия -->
-            <g id="pin-4" opacity="0">
-              <circle cx="890" cy="340" r="18" fill="#d94136" />
-              <rect x="730" y="205" width="360" height="96" rx="14" fill="#d94136" />
-              <text x="910" y="245" fill="#fff2cc" font-size="22" font-weight="800" text-anchor="middle">4. РОССИЯ (эпоха Петра I)</text>
-              <text x="910" y="278" fill="#ffffff" font-size="28" font-weight="900" text-anchor="middle">«Апельсин» (1714 г.)</text>
-            </g>
+            <g id="map-pins-layer"></g>
           </svg>
         </div>
       </section>
 
-      <!-- ======================================================================
-           СЦЕНА 4: ВЕТВЛЕНИЕ В ДРУГИХ ЯЗЫКАХ (17.5с — 23.0с)
-           ====================================================================== -->
+      <!-- СЦЕНА 4: ВЕТВЛЕНИЕ В ДРУГИХ ЯЗЫКАХ -->
       <section class="scene theme-paper" id="scene-4">
         <div class="tree-layout">
           <div class="root-node" id="s4-root">
-            <div style="font-size: 22px; color: var(--accent-yellow); font-weight: 800; text-transform: uppercase;">
-              Два разных маршрута одного фрукта
+            <div style="font-size: 22px; color: var(--accent-yellow); font-weight: 800; text-transform: uppercase;" id="s4-kicker">
+              Сравнение в языках
             </div>
-            <div style="font-size: 46px; font-weight: 900; margin-top: 6px;">
-              «Китайское яблоко» vs «Наранг»
-            </div>
-          </div>
-
-          <div class="branches-grid">
-            <div class="branch-card" id="s4-b1">
-              <div class="branch-lang" style="background: #fde8e6; color: #b82d23;">Русский</div>
-              <div class="branch-word">апельсин</div>
-              <div class="branch-note">из нидерл. appelsien</div>
-            </div>
-
-            <div class="branch-card" id="s4-b2">
-              <div class="branch-lang" style="background: #fde8e6; color: #b82d23;">Немецкий</div>
-              <div class="branch-word">Apfelsine</div>
-              <div class="branch-note">«китайское яблоко»</div>
-            </div>
-
-            <div class="branch-card" id="s4-b3">
-              <div class="branch-lang" style="background: #e6f0fa; color: #1f4e78;">Английский</div>
-              <div class="branch-word">orange</div>
-              <div class="branch-note">через санскр. nāraṅga</div>
-            </div>
-
-            <div class="branch-card" id="s4-b4">
-              <div class="branch-lang" style="background: #e6f0fa; color: #1f4e78;">Польский</div>
-              <div class="branch-word">pomarańcza</div>
-              <div class="branch-note">из итал. pomo + arancia</div>
+            <div style="font-size: 46px; font-weight: 900; margin-top: 6px;" id="s4-title">
+              Родственные формы
             </div>
           </div>
+
+          <div class="branches-grid" id="s4-grid"></div>
         </div>
       </section>
 
-      <!-- Субтитры и общая виньетка -->
       <div id="subtitle-bar">
         <div id="subtitle-text"></div>
       </div>
@@ -613,6 +510,10 @@
 
   <!-- Панель предпросмотра для браузера -->
   <div id="dev-controls">
+    <label class="file-btn" title="Загрузить JSON эпизода для превью">
+      📂 Загрузить JSON
+      <input type="file" id="json-file-input" accept=".json" style="display: none;" />
+    </label>
     <button id="btn-play">▶ Пауза / Пуск</button>
     <input type="range" id="scrubber" min="0" max="23000" value="0" step="10" />
     <span id="time-display">00:00.0 / 00:23.0</span>
@@ -620,13 +521,72 @@
 
   <script>
     /* ==========================================================================
-       ЯДРО ДВИЖКА: ДЕТЕРМИНИРОВАННЫЙ РЕНДЕР ПО ВРЕМЕНИ (window.renderAt)
+       ДЕФОЛТНЫЙ ЭПИЗОД (ЕСЛИ НЕ ПЕРЕДАН ВНЕШНИЙ JSON)
        ========================================================================== */
+    const DEFAULT_EPISODE = {
+      meta: { id: "ep01_apelsin", title: "Апельсин" },
+      timings: {
+        scene1: [0, 4500],
+        scene2: [4500, 11500],
+        scene3: [11500, 17500],
+        scene4: [17500, 23000]
+      },
+      scene1: {
+        badge: "ЭТИМОЛОГИЯ • ПУТЬ СЛОВА",
+        card1: { lang: "Нидерландский", word: "appelsien" },
+        card2: { lang: "Русский", word: "апельсин" },
+        stampLabel: "Буквальный перевод:",
+        stampValue: "«КИТАЙСКОЕ ЯБЛОКО»",
+        banner: "КАК ФРУКТ ИЗ АЗИИ ПОЛУЧИЛ ЕВРОПЕЙСКОЕ ИМЯ"
+      },
+      scene2: {
+        timelineLabels: ["1. Китай", "2. Португалия", "3. Нидерланды", "4. Россия (XVIII век)"],
+        footnote: "схема фонетического перехода • упрощённая реконструкция",
+        stages: [
+          { start: 4500, end: 6200, stepIndex: 0, era: "ЭТАП 1 • ЮЖНЫЙ КИТАЙ", word: "Источник сорта", meaning: "Португальские мореплаватели вывозят сладкие цитрусы в Европу" },
+          { start: 6200, end: 8000, stepIndex: 1, era: "ЭТАП 2 • ГОЛЛАНДСКИЕ КУПЦЫ", word: "appel + <span class='highlight'>sien</span>", meaning: "«яблоко» + «китайское» (от старофранц. Sine — Китай)" },
+          { start: 8000, end: 9700, stepIndex: 2, era: "ЭТАП 3 • СЛИЯНИЕ В ОДНО СЛОВО", word: "appel<span class='highlight'>sien</span>", meaning: "В разговорном нидерландском закрепилась форма appelsien" },
+          { start: 9700, end: 11500, stepIndex: 3, era: "ЭТАП 4 • ЗАИМСТВОВАНИЕ В РУССКИЙ (1714)", word: "апель<span class='highlight'>син</span>", meaning: "Слово вошло в русский язык почти без изменения звучания" }
+        ]
+      },
+      scene3: {
+        badge: "МАРШРУТ ЗАИМСТВОВАНИЯ • XVI–XVIII ВВ.",
+        title: "Торговый путь слова через континенты",
+        routePath: "M 1520 660 Q 1080 860 360 620 Q 390 480 540 430 Q 720 380 890 340",
+        routeAnim: [12000, 16200],
+        pins: [
+          { appearAt: 11800, x: 1520, y: 660, color: "#d94136", ring: true, boxX: 1370, boxY: 700, boxW: 300, boxH: 86, title: "1. ЮЖНЫЙ КИТАЙ", subtitle: "Родина сладкого сорта" },
+          { appearAt: 13100, x: 360,  y: 620, color: "#2b5b84", ring: false, boxX: 190, boxY: 655, boxW: 340, boxH: 86, title: "2. ПОРТУГАЛИЯ (XVI в.)", subtitle: "Морской завоз в Европу" },
+          { appearAt: 14400, x: 540,  y: 430, color: "#2e8555", ring: false, boxX: 330, boxY: 295, boxW: 380, boxH: 96, title: "3. НИДЕРЛАНДЫ (XVII в.)", subtitle: "appelsien / sinaasappel" },
+          { appearAt: 15600, x: 890,  y: 340, color: "#d94136", ring: false, boxX: 730, boxY: 205, boxW: 360, boxH: 96, title: "4. РОССИЯ (эпоха Петра I)", subtitle: "«Апельсин» (1714 г.)", highlightBox: true }
+        ]
+      },
+      scene4: {
+        kicker: "Два разных маршрута одного фрукта",
+        title: "«Китайское яблоко» vs «Наранг»",
+        branches: [
+          { lang: "Русский", word: "апельсин", note: "из нидерл. appelsien", tagBg: "#fde8e6", tagColor: "#b82d23" },
+          { lang: "Немецкий", word: "Apfelsine", note: "«китайское яблоко»", tagBg: "#fde8e6", tagColor: "#b82d23" },
+          { lang: "Английский", word: "orange", note: "через санскр. nāraṅga", tagBg: "#e6f0fa", tagColor: "#1f4e78" },
+          { lang: "Польский", word: "pomarańcza", note: "из итал. pomo + arancia", tagBg: "#e6f0fa", tagColor: "#1f4e78" }
+        ]
+      },
+      subtitles: [
+        { start: 300,   end: 4200,  text: "Вы когда-нибудь задумывались, почему апельсин называется именно так?" },
+        { start: 4700,  end: 8000,  text: "В XVII веке голландцы привозили сладкие плоды из Китая и звали их «китайскими яблоками»." },
+        { start: 8200,  end: 11300, text: "Слово appelsien попало в Россию при Петре Первом и превратилось в привычный «апельсин»." },
+        { start: 11800, end: 17200, text: "Фрукт проделал огромный морской путь из Южного Китая через Лиссабон и Амстердам." },
+        { start: 17800, end: 22600, text: "При этом в английский и польский слово пришло совсем другим путём — из санскрита." }
+      ]
+    };
 
-    // Общая длительность ролика в миллисекундах (23 секунды для примера)
-    const TOTAL_DURATION_MS = 23000;
+    /* ==========================================================================
+       ИНИЦИАЛИЗАЦИЯ СЦЕНЫ ИЗ ДАННЫХ ЭПИЗОДА
+       ========================================================================== */
+    let EPISODE = DEFAULT_EPISODE;
+    let TOTAL_DURATION_MS = EPISODE.timings.scene4[1];
+    let routeTotalLength = 1650;
 
-    // Вспомогательные математические функции для плавной анимации
     const clamp = (val, min, max) => Math.max(min, Math.min(max, val));
     const progress = (t, start, end) => clamp((t - start) / (end - start), 0, 1);
     const easeOutCubic = (x) => 1 - Math.pow(1 - x, 3);
@@ -636,44 +596,6 @@
       return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2);
     };
 
-    // Субтитры с привязкой к таймкодам (мс)
-    const SUBTITLES = [
-      { start: 300,   end: 4200,  text: "Вы когда-нибудь задумывались, почему апельсин называется именно так?" },
-      { start: 4700,  end: 8000,  text: "В XVII веке голландцы привозили сладкие плоды из Китая и звали их «китайскими яблоками»." },
-      { start: 8200,  end: 11300, text: "Слово appelsien попало в Россию при Петре Первом и превратилось в привычный «апельсин»." },
-      { start: 11800, end: 17200, text: "Фрукт проделал огромный морской путь из Южного Китая через Лиссабон и Амстердам." },
-      { start: 17800, end: 22600, text: "При этом в английский и польский слово пришло совсем другим путём — из санскрита." }
-    ];
-
-    // Этапы трансформации слова для Сцены 2
-    const MORPH_STAGES = [
-      {
-        start: 4500, end: 6200, stepIndex: 0,
-        era: "ЭТАП 1 • ЮЖНЫЙ КИТАЙ",
-        word: "Источник сорта",
-        meaning: "Португальские мореплаватели вывозят сладкие цитрусы в Европу"
-      },
-      {
-        start: 6200, end: 8000, stepIndex: 1,
-        era: "ЭТАП 2 • ГОЛЛАНДСКИЕ КУПЦЫ",
-        word: "appel + <span class='highlight'>sien</span>",
-        meaning: "«яблоко» + «китайское» (от старофранц. Sine — Китай)"
-      },
-      {
-        start: 8000, end: 9700, stepIndex: 2,
-        era: "ЭТАП 3 • СЛИЯНИЕ В ОДНО СЛОВО",
-        word: "appel<span class='highlight'>sien</span>",
-        meaning: "В разговорном нидерландском закрепилась форма appelsien"
-      },
-      {
-        start: 9700, end: 11500, stepIndex: 3,
-        era: "ЭТАП 4 • ЗАИМСТВОВАНИЕ В РУССКИЙ (1714)",
-        word: "апель<span class='highlight'>син</span>",
-        meaning: "Слово вошло в русский язык почти без изменения звучания"
-      }
-    ];
-
-    // Кэш DOM-элементов
     const el = {
       s1: document.getElementById("scene-1"),
       s1Badge: document.getElementById("s1-badge"),
@@ -683,71 +605,186 @@
       s1Banner: document.getElementById("s1-banner"),
 
       s2: document.getElementById("scene-2"),
-      s2Steps: document.querySelectorAll("#s2-steps .timeline-step"),
+      s2StepsContainer: document.getElementById("s2-steps"),
       s2Card: document.getElementById("s2-card"),
       s2Era: document.getElementById("s2-era"),
       s2Word: document.getElementById("s2-word"),
       s2Meaning: document.getElementById("s2-meaning"),
+      s2Footnote: document.getElementById("s2-footnote"),
 
       s3: document.getElementById("scene-3"),
+      s3Badge: document.getElementById("s3-badge"),
+      s3Title: document.getElementById("s3-title"),
       route: document.getElementById("migration-route"),
-      pin1: document.getElementById("pin-1"),
-      pin2: document.getElementById("pin-2"),
-      pin3: document.getElementById("pin-3"),
-      pin4: document.getElementById("pin-4"),
+      pinsLayer: document.getElementById("map-pins-layer"),
 
       s4: document.getElementById("scene-4"),
       s4Root: document.getElementById("s4-root"),
-      s4Branches: [
-        document.getElementById("s4-b1"),
-        document.getElementById("s4-b2"),
-        document.getElementById("s4-b3"),
-        document.getElementById("s4-b4")
-      ],
+      s4Kicker: document.getElementById("s4-kicker"),
+      s4Title: document.getElementById("s4-title"),
+      s4Grid: document.getElementById("s4-grid"),
 
       subText: document.getElementById("subtitle-text")
     };
 
+    let s2StepNodes = [];
+    let s3PinNodes = [];
+    let s4BranchNodes = [];
+
+    function applyEpisodeData(data) {
+      EPISODE = data;
+      TOTAL_DURATION_MS = EPISODE.timings.scene4[1];
+
+      // Сцена 1
+      el.s1Badge.textContent = EPISODE.scene1.badge;
+      document.getElementById("s1-c1-lang").textContent = EPISODE.scene1.card1.lang;
+      document.getElementById("s1-c1-word").textContent = EPISODE.scene1.card1.word;
+      document.getElementById("s1-c2-lang").textContent = EPISODE.scene1.card2.lang;
+      document.getElementById("s1-c2-word").textContent = EPISODE.scene1.card2.word;
+      document.getElementById("s1-stamp-label").textContent = EPISODE.scene1.stampLabel;
+      document.getElementById("s1-stamp-value").textContent = EPISODE.scene1.stampValue;
+      el.s1Banner.textContent = EPISODE.scene1.banner;
+
+      // Сцена 2
+      el.s2StepsContainer.innerHTML = "";
+      EPISODE.scene2.timelineLabels.forEach((label, idx) => {
+        const div = document.createElement("div");
+        div.className = "timeline-step";
+        div.dataset.step = idx;
+        div.textContent = label;
+        el.s2StepsContainer.appendChild(div);
+      });
+      s2StepNodes = el.s2StepsContainer.querySelectorAll(".timeline-step");
+      el.s2Footnote.textContent = EPISODE.scene2.footnote || "";
+
+      // Сцена 3
+      el.s3Badge.textContent = EPISODE.scene3.badge;
+      el.s3Title.textContent = EPISODE.scene3.title;
+      el.route.setAttribute("d", EPISODE.scene3.routePath);
+      routeTotalLength = el.route.getTotalLength() || 1650;
+      el.route.style.strokeDasharray = routeTotalLength;
+      el.route.style.strokeDashoffset = routeTotalLength;
+
+      el.pinsLayer.innerHTML = "";
+      s3PinNodes = EPISODE.scene3.pins.map((pin) => {
+        const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        g.setAttribute("opacity", "0");
+
+        const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        circle.setAttribute("cx", pin.x);
+        circle.setAttribute("cy", pin.y);
+        circle.setAttribute("r", pin.highlightBox ? "18" : "16");
+        circle.setAttribute("fill", pin.color);
+        g.appendChild(circle);
+
+        if (pin.ring) {
+          const ring = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+          ring.setAttribute("cx", pin.x);
+          ring.setAttribute("cy", pin.y);
+          ring.setAttribute("r", "28");
+          ring.setAttribute("fill", "none");
+          ring.setAttribute("stroke", pin.color);
+          ring.setAttribute("stroke-width", "4");
+          g.appendChild(ring);
+        }
+
+        const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        rect.setAttribute("x", pin.boxX);
+        rect.setAttribute("y", pin.boxY);
+        rect.setAttribute("width", pin.boxW);
+        rect.setAttribute("height", pin.boxH);
+        rect.setAttribute("rx", "14");
+        rect.setAttribute("fill", pin.highlightBox ? "#d94136" : "#1c1c21");
+        g.appendChild(rect);
+
+        const textTop = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        textTop.setAttribute("x", pin.boxX + pin.boxW / 2);
+        textTop.setAttribute("y", pin.boxY + 38);
+        textTop.setAttribute("fill", pin.highlightBox ? "#fff2cc" : "#f7b52c");
+        textTop.setAttribute("font-size", "22");
+        textTop.setAttribute("font-weight", "800");
+        textTop.setAttribute("text-anchor", "middle");
+        textTop.textContent = pin.title;
+        g.appendChild(textTop);
+
+        const textSub = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        textSub.setAttribute("x", pin.boxX + pin.boxW / 2);
+        textSub.setAttribute("y", pin.boxY + 70);
+        textSub.setAttribute("fill", "#ffffff");
+        textSub.setAttribute("font-size", pin.highlightBox ? "27" : "24");
+        textSub.setAttribute("font-weight", pin.highlightBox ? "900" : "700");
+        textSub.setAttribute("text-anchor", "middle");
+        textSub.textContent = pin.subtitle;
+        g.appendChild(textSub);
+
+        el.pinsLayer.appendChild(g);
+        return { node: g, appearAt: pin.appearAt };
+      });
+
+      // Сцена 4
+      el.s4Kicker.textContent = EPISODE.scene4.kicker;
+      el.s4Title.textContent = EPISODE.scene4.title;
+      el.s4Grid.innerHTML = "";
+      s4BranchNodes = EPISODE.scene4.branches.map((b) => {
+        const card = document.createElement("div");
+        card.className = "branch-card";
+        card.innerHTML = `
+          <div class="branch-lang" style="background: ${b.tagBg}; color: ${b.tagColor};">${b.lang}</div>
+          <div class="branch-word">${b.word}</div>
+          <div class="branch-note">${b.note}</div>
+        `;
+        el.s4Grid.appendChild(card);
+        return card;
+      });
+
+      const scrubber = document.getElementById("scrubber");
+      if (scrubber) scrubber.max = TOTAL_DURATION_MS;
+    }
+
     /**
      * Главная функция отрисовки кадра в момент времени t (в миллисекундах).
-     * Вызывается как плеером в браузере, так и Python-скриптом при экспорте.
      */
     window.renderAt = function(t) {
       t = clamp(t, 0, TOTAL_DURATION_MS);
+      const [s1Start, s1End] = EPISODE.timings.scene1;
+      const [s2Start, s2End] = EPISODE.timings.scene2;
+      const [s3Start, s3End] = EPISODE.timings.scene3;
+      const [s4Start, s4End] = EPISODE.timings.scene4;
 
-      // --- 1. СЦЕНА 1 (0 — 4500 мс) ---
-      const s1Visible = t < 4500;
+      // СЦЕНА 1
+      const s1Visible = t >= s1Start && t < s1End;
       el.s1.style.opacity = s1Visible ? 1 : 0;
       if (s1Visible) {
-        const pBadge = easeOutCubic(progress(t, 100, 600));
+        const pBadge = easeOutCubic(progress(t, s1Start + 100, s1Start + 600));
         el.s1Badge.style.opacity = pBadge;
         el.s1Badge.style.transform = `translateY(${(1 - pBadge) * -30}px)`;
 
-        const pC1 = easeOutBack(progress(t, 350, 950));
+        const pC1 = easeOutBack(progress(t, s1Start + 350, s1Start + 950));
         el.s1Card1.style.opacity = clamp(pC1, 0, 1);
         el.s1Card1.style.transform = `rotate(-3deg) scale(${0.7 + 0.3 * pC1})`;
 
-        const pC2 = easeOutBack(progress(t, 650, 1250));
+        const pC2 = easeOutBack(progress(t, s1Start + 650, s1Start + 1250));
         el.s1Card2.style.opacity = clamp(pC2, 0, 1);
         el.s1Card2.style.transform = `rotate(2deg) scale(${0.7 + 0.3 * pC2})`;
 
-        const pStamp = easeOutBack(progress(t, 1200, 1800));
+        const pStamp = easeOutBack(progress(t, s1Start + 1200, s1Start + 1800));
         el.s1Stamp.style.opacity = clamp(pStamp, 0, 1);
         el.s1Stamp.style.transform = `rotate(-2deg) scale(${0.6 + 0.4 * pStamp})`;
 
-        const pBanner = easeOutCubic(progress(t, 1600, 2200));
+        const pBanner = easeOutCubic(progress(t, s1Start + 1600, s1Start + 2200));
         el.s1Banner.style.opacity = pBanner;
         el.s1Banner.style.transform = `translateY(${(1 - pBanner) * 40}px)`;
       }
 
-      // --- 2. СЦЕНА 2 (4500 — 11500 мс) ---
-      const s2Visible = t >= 4500 && t < 11500;
+      // СЦЕНА 2
+      const s2Visible = t >= s2Start && t < s2End;
       el.s2.style.opacity = s2Visible ? 1 : 0;
       if (s2Visible) {
-        const currentStage = MORPH_STAGES.find(s => t >= s.start && t < s.end) || MORPH_STAGES[MORPH_STAGES.length - 1];
+        const stages = EPISODE.scene2.stages;
+        const currentStage = stages.find(s => t >= s.start && t < s.end) || stages[stages.length - 1];
         const localP = easeOutCubic(progress(t, currentStage.start, currentStage.start + 450));
 
-        el.s2Steps.forEach((stepEl, idx) => {
+        s2StepNodes.forEach((stepEl, idx) => {
           stepEl.classList.toggle("active", idx === currentStage.stepIndex);
         });
 
@@ -759,37 +796,38 @@
         el.s2Card.style.transform = `translateY(${(1 - localP) * 24}px) scale(${0.96 + 0.04 * localP})`;
       }
 
-      // --- 3. СЦЕНА 3: КАРТА (11500 — 17500 мс) ---
-      const s3Visible = t >= 11500 && t < 17500;
+      // СЦЕНА 3: КАРТА
+      const s3Visible = t >= s3Start && t < s3End;
       el.s3.style.opacity = s3Visible ? 1 : 0;
       if (s3Visible) {
-        const routeP = easeOutCubic(progress(t, 12000, 16200));
-        el.route.style.strokeDashoffset = 1650 * (1 - routeP);
+        const [rStart, rEnd] = EPISODE.scene3.routeAnim;
+        const routeP = easeOutCubic(progress(t, rStart, rEnd));
+        el.route.style.strokeDashoffset = routeTotalLength * (1 - routeP);
 
-        el.pin1.style.opacity = easeOutCubic(progress(t, 11800, 12300));
-        el.pin2.style.opacity = easeOutCubic(progress(t, 13100, 13600));
-        el.pin3.style.opacity = easeOutCubic(progress(t, 14400, 14900));
-        el.pin4.style.opacity = easeOutCubic(progress(t, 15600, 16100));
+        s3PinNodes.forEach((p) => {
+          const opacity = easeOutCubic(progress(t, p.appearAt, p.appearAt + 500));
+          p.node.setAttribute("opacity", opacity.toFixed(3));
+        });
       }
 
-      // --- 4. СЦЕНА 4: ВЕТВЛЕНИЕ (17500 — 23000 мс) ---
-      const s4Visible = t >= 17500;
+      // СЦЕНА 4: ВЕТВЛЕНИЕ
+      const s4Visible = t >= s4Start && t <= s4End;
       el.s4.style.opacity = s4Visible ? 1 : 0;
       if (s4Visible) {
-        const pRoot = easeOutCubic(progress(t, 17700, 18300));
+        const pRoot = easeOutCubic(progress(t, s4Start + 200, s4Start + 800));
         el.s4Root.style.opacity = pRoot;
         el.s4Root.style.transform = `translateY(${(1 - pRoot) * -25}px)`;
 
-        el.s4Branches.forEach((card, idx) => {
-          const start = 18300 + idx * 350;
+        s4BranchNodes.forEach((card, idx) => {
+          const start = s4Start + 800 + idx * 350;
           const pCard = easeOutBack(progress(t, start, start + 550));
           card.style.opacity = clamp(pCard, 0, 1);
           card.style.transform = `translateY(${(1 - pCard) * 35}px)`;
         });
       }
 
-      // --- 5. СУБТИТРЫ ---
-      const activeSub = SUBTITLES.find(s => t >= s.start && t <= s.end);
+      // СУБТИТРЫ
+      const activeSub = EPISODE.subtitles.find(s => t >= s.start && t <= s.end);
       if (activeSub) {
         el.subText.textContent = activeSub.text;
         el.subText.style.opacity = 1;
@@ -798,20 +836,38 @@
       }
     };
 
-    // Возвращает общую длительность для Python-скрипта
     window.getDurationMs = () => TOTAL_DURATION_MS;
 
     /* ==========================================================================
-       ВСТРОЕННЫЙ ПЛЕЕР ДЛЯ ОТЛАДКИ В БРАУЗЕРЕ
+       ЗАГРУЗКА ДАННЫХ ИЗ URL (?data=...) И ПЛЕЕР ПРЕДПРОСМОТРА
        ========================================================================== */
+    function decodeBase64Utf8(b64Url) {
+      const b64 = b64Url.replace(/-/g, "+").replace(/_/g, "/");
+      const binStr = atob(b64);
+      const bytes = Uint8Array.from(binStr, (m) => m.codePointAt(0));
+      return new TextDecoder().decode(bytes);
+    }
+
     const urlParams = new URLSearchParams(window.location.search);
     const isExport = urlParams.get("export") === "1";
+    const encodedData = urlParams.get("data");
+
+    if (encodedData) {
+      try {
+        const parsed = JSON.parse(decodeBase64Utf8(encodedData));
+        applyEpisodeData(parsed);
+      } catch (err) {
+        console.error("Ошибка чтения параметра data:", err);
+        applyEpisodeData(DEFAULT_EPISODE);
+      }
+    } else {
+      applyEpisodeData(DEFAULT_EPISODE);
+    }
 
     if (isExport) {
       document.body.classList.add("export-mode");
       window.renderAt(0);
     } else {
-      // Автомасштабирование холста 1920x1080 под окно браузера
       const wrapper = document.getElementById("viewport-wrapper");
       function fitViewport() {
         const scaleX = (window.innerWidth - 40) / 1920;
@@ -822,7 +878,6 @@
       window.addEventListener("resize", fitViewport);
       fitViewport();
 
-      // Логика воспроизведения в превью
       let currentTime = 0;
       let isPlaying = true;
       let lastFrameTs = performance.now();
@@ -830,6 +885,7 @@
       const scrubber = document.getElementById("scrubber");
       const timeDisplay = document.getElementById("time-display");
       const btnPlay = document.getElementById("btn-play");
+      const fileInput = document.getElementById("json-file-input");
 
       function formatMs(ms) {
         const totalSec = ms / 1000;
@@ -837,6 +893,23 @@
         const secs = (totalSec % 60).toFixed(1).padStart(4, "0");
         return `${mins}:${secs}`;
       }
+
+      fileInput.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          try {
+            const parsed = JSON.parse(ev.target.result);
+            applyEpisodeData(parsed);
+            currentTime = 0;
+            window.renderAt(0);
+          } catch (err) {
+            console.error("Некорректный JSON-файл эпизода:", err);
+          }
+        };
+        reader.readAsText(file, "utf-8");
+      });
 
       btnPlay.addEventListener("click", () => {
         isPlaying = !isPlaying;
