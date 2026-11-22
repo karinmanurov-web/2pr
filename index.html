@@ -1159,176 +1159,58 @@
      * Главная функция отрисовки кадра в момент времени t (в миллисекундах).
      */
     window.renderAt = function(t) {
-      t = clamp(t, 0, TOTAL_DURATION_MS);
-      if (CHAPTERS) {
-        let activeCh = null;
-        for (const ch of CHAPTERS) {
-            const range = ch.timings?.scene1 || ch.scenes?.scene1 || [0, 0];
-            // Определяем границы главы по min/max всех сцен
-            const allRanges = [];
-            if (ch.scenes) for (const r of Object.values(ch.scenes)) if (Array.isArray(r)) allRanges.push(r);
-            if (ch.timings) for (const r of Object.values(ch.timings)) if (Array.isArray(r)) allRanges.push(r);
-            if (Array.isArray(ch.subtitles)) for (const s of ch.subtitles) allRanges.push([s.start, s.end]);
-            if (!allRanges.length) continue;
-            const chStart = Math.min(...allRanges.map(r => r[0]));
-            const chEnd = Math.max(...allRanges.map(r => r[1]));
-            if (t >= chStart && t <= chEnd) { activeCh = ch; break; }
-        }
+      t = clamp(Number(t) || 0, 0, TOTAL_DURATION_MS);
+
+      // Определяем активную главу и обновляем её содержимое при переключении.
+      let activeCh = null;
+      if (CHAPTERS && CHAPTERS.length) {
+        activeCh = CHAPTERS.find((ch) => {
+          const ranges = [];
+          if (ch.timings) Object.values(ch.timings).forEach((r) => { if (Array.isArray(r)) ranges.push(r); });
+          if (ch.scenes) Object.values(ch.scenes).forEach((r) => { if (Array.isArray(r)) ranges.push(r); });
+          (ch.subtitles || []).forEach((s) => ranges.push([s.start, s.end]));
+          if (!ranges.length) return false;
+          return t >= Math.min(...ranges.map((r) => Number(r[0]) || 0)) &&
+                 t <= Math.max(...ranges.map((r) => Number(r[1]) || 0));
+        });
         if (activeCh && activeChapterKey !== activeCh.id) {
-            activeChapterKey = activeCh.id;
-            applyChapterScenes(activeCh.scenes || {});
+          activeChapterKey = activeCh.id;
+          applyChapterScenes(activeCh.scenes || {});
         }
-    }
-
-      const [s1Start, s1End] = getActiveSceneRange("scene1", [0, 0]);
-      const [s2Start, s2End] = getActiveSceneRange("scene2", [0, 0]);
-      const [s3Start, s3End] = getActiveSceneRange("scene3", [0, 0]);
-      const [s4Start, s4End] = getActiveSceneRange("scene4", [0, 0]);
-      const [s5Start, s5End] = getActiveSceneRange("character_scene", [0, 0]);
-      const [s6Start, s6End] = getActiveSceneRange("chart_scene", [0, 0]);
-      const [s7Start, s7End] = getActiveSceneRange("window_scene", [0, 0]);
-
-      // СЦЕНА 1
-      const s1Visible = s1End > s1Start && t >= s1Start && t < s1End;
-      el.s1.style.opacity = s1Visible ? 1 : 0;
-      if (s1Visible) {
-        const pBadge = easeOutCubic(progress(t, s1Start + 100, s1Start + 600));
-        el.s1Badge.style.opacity = pBadge;
-        el.s1Badge.style.transform = `translateY(${(1 - pBadge) * -30}px)`;
-
-        const pC1 = easeOutBack(progress(t, s1Start + 350, s1Start + 950));
-        el.s1Card1.style.opacity = clamp(pC1, 0, 1);
-        el.s1Card1.style.transform = `rotate(-3deg) scale(${0.7 + 0.3 * pC1})`;
-
-        const pC2 = easeOutBack(progress(t, s1Start + 650, s1Start + 1250));
-        el.s1Card2.style.opacity = clamp(pC2, 0, 1);
-        el.s1Card2.style.transform = `rotate(2deg) scale(${0.7 + 0.3 * pC2})`;
-
-        const pStamp = easeOutBack(progress(t, s1Start + 1200, s1Start + 1800));
-        el.s1Stamp.style.opacity = clamp(pStamp, 0, 1);
-        el.s1Stamp.style.transform = `rotate(-2deg) scale(${0.6 + 0.4 * pStamp})`;
-
-        const pBanner = easeOutCubic(progress(t, s1Start + 1600, s1Start + 2200));
-        el.s1Banner.style.opacity = pBanner;
-        el.s1Banner.style.transform = `translateY(${(1 - pBanner) * 40}px)`;
       }
 
-      // СЦЕНА 2
-      const activeChObj = CHAPTERS ? CHAPTERS.find(c => c.id === activeChapterKey) : null;
-      const scene2Data = activeChObj ? activeChObj.scene2 : EPISODE.scene2;
-      if (s2Visible && scene2Data && Array.isArray(scene2Data.stages) && scene2Data.stages.length > 0) {
-          const stages = scene2Data.stages;
-          ...  
-      }    
-      const s2Visible = s2End > s2Start && t >= s2Start && t < s2End;
-      el.s2.style.opacity = s2Visible ? 1 : 0;
-      if (s2Visible && EPISODE.scene2 && Array.isArray(EPISODE.scene2.stages) && EPISODE.scene2.stages.length > 0) {
-        const stages = EPISODE.scene2.stages;
-        const currentStage = stages.find(s => t >= s.start && t < s.end) || stages[stages.length - 1];
-        const localP = easeOutCubic(progress(t, currentStage.start, currentStage.start + 450));
+      const source = activeCh || EPISODE;
+      const timings = source.timings || {};
+      const sceneData = source.scenes || {};
+      const sceneKeys = [
+        ["scene1", el.s1],
+        ["scene2", el.s2],
+        ["scene3", el.s3],
+        ["scene4", el.s4],
+        ["character_scene", el.s5],
+        ["chart_scene", el.s6],
+        ["window_scene", el.s7]
+      ];
 
-        s2StepNodes.forEach((stepEl, idx) => {
-          stepEl.classList.toggle("active", idx === currentStage.stepIndex);
-        });
-
-        el.s2Era.textContent = currentStage.era;
-        el.s2Word.innerHTML = currentStage.word;
-        el.s2Meaning.textContent = currentStage.meaning;
-
-        el.s2Card.style.opacity = localP;
-        el.s2Card.style.transform = `translateY(${(1 - localP) * 24}px) scale(${0.96 + 0.04 * localP})`;
-      }
-
-      // СЦЕНА 3: КАРТА
-      const scene3Data = activeChObj ? activeChObj.scene3 : EPISODE.scene3;
-      if (s3Visible && scene3Data) {
-          const [rStart, rEnd] = scene3Data.routeAnim || [s3Start + 300, s3End - 500];
-          ...
+      sceneKeys.forEach(([key, node]) => {
+        let range = timings[key] || sceneData[key];
+        if (!Array.isArray(range) && !activeCh) {
+          range = EPISODE.timings?.[key] || EPISODE.scenes?.[key];
         }
-      const s3Visible = s3End > s3Start && t >= s3Start && t < s3End;
-      el.s3.style.opacity = s3Visible ? 1 : 0;
-      if (s3Visible && EPISODE.scene3) {
-        const [rStart, rEnd] = EPISODE.scene3.routeAnim || [s3Start + 300, s3End - 500];
-        const routeP = easeOutCubic(progress(t, rStart, rEnd));
-        el.route.style.strokeDashoffset = routeTotalLength * (1 - routeP);
+        const valid = Array.isArray(range) && range.length >= 2;
+        const visible = valid && t >= Number(range[0]) && t < Number(range[1]);
+        node.style.opacity = visible ? "1" : "0";
+        node.style.pointerEvents = visible ? "auto" : "none";
+      });
 
-        s3PinNodes.forEach((p) => {
-          const opacity = easeOutCubic(progress(t, p.appearAt, p.appearAt + 500));
-          p.node.setAttribute("opacity", opacity.toFixed(3));
-        });
+      const subtitles = (source.subtitles || EPISODE.subtitles || []);
+      const activeSub = subtitles.find((s) => t >= s.start && t < s.end);
+      if (activeSub) {
+        el.subText.textContent = activeSub.text || "";
+        el.subText.style.opacity = "1";
+      } else {
+        el.subText.style.opacity = "0";
       }
-
-      // СЦЕНА 4: ВЕТВЛЕНИЕ
-      const s4Visible = s4End > s4Start && t >= s4Start && t <= s4End;
-      el.s4.style.opacity = s4Visible ? 1 : 0;
-      if (s4Visible) {
-        const pRoot = easeOutCubic(progress(t, s4Start + 200, s4Start + 800));
-        el.s4Root.style.opacity = pRoot;
-        el.s4Root.style.transform = `translateY(${(1 - pRoot) * -25}px)`;
-
-        s4BranchNodes.forEach((card, idx) => {
-          const start = s4Start + 800 + idx * 350;
-          const pCard = easeOutBack(progress(t, start, start + 550));
-          card.style.opacity = clamp(pCard, 0, 1);
-          card.style.transform = `translateY(${(1 - pCard) * 35}px)`;
-        });
-      }
-
-      // СЦЕНА 5: ПЕРСОНАЖИ (character_scene)
-      const s5Visible = s5End > s5Start && t >= s5Start && t <= s5End;
-      el.s5.style.opacity = s5Visible ? 1 : 0;
-      if (s5Visible) {
-        s5CharNodes.forEach((slot, idx) => {
-          const start = s5Start + 250 + idx * 500;
-          const p = easeOutBack(progress(t, start, start + 600));
-          slot.style.opacity = clamp(p, 0, 1);
-          slot.style.transform = `translateY(${(1 - p) * 40}px) scale(${0.92 + 0.08 * p})`;
-        });
-      }
-
-      // СЦЕНА 6: ГРАФИК (chart_scene)
-      const s6Visible = s6End > s6Start && t >= s6Start && t <= s6End;
-      el.s6.style.opacity = s6Visible ? 1 : 0;
-      if (s6Visible && s6LineEl) {
-        const lineP = easeOutCubic(progress(t, s6Start + 300, s6Start + 2200));
-        s6LineEl.style.strokeDashoffset = chartLineLength * (1 - lineP);
-
-        const totalPts = Math.max(s6PointNodes.length, 1);
-        s6PointNodes.forEach((ptNode, idx) => {
-          const ptAppear = s6Start + 300 + (idx / totalPts) * 1900;
-          const ptOp = easeOutCubic(progress(t, ptAppear, ptAppear + 400));
-          ptNode.setAttribute("opacity", ptOp.toFixed(3));
-        });
-      }
-
-      // СЦЕНА 7: ОКНО ИНТЕРФЕЙСА (window_scene)
-      const s7Visible = s7End > s7Start && t >= s7Start && t <= s7End;
-      el.s7.style.opacity = s7Visible ? 1 : 0;
-      if (s7Visible) {
-        const pWin = easeOutBack(progress(t, s7Start + 200, s7Start + 800));
-        el.s7Window.style.opacity = clamp(pWin, 0, 1);
-        el.s7Window.style.transform = `translateY(${(1 - pWin) * 32}px) scale(${0.95 + 0.05 * pWin})`;
-      }
-
-      // СУБТИТРЫ
-        const activeSubs = CHAPTERS
-            if (activeSub) {
-              el.subText.textContent = activeSub.text;
-              el.subText.style.opacity = 1;
-            } else {
-              el.subText.style.opacity = 0;
-            }
-          ? (CHAPTERS.find(ch => {
-              const all = [];
-              if (ch.scenes) for (const r of Object.values(ch.scenes)) if (Array.isArray(r)) all.push(r);
-              if (ch.timings) for (const r of Object.values(ch.timings)) if (Array.isArray(r)) all.push(r);
-              if (Array.isArray(ch.subtitles)) for (const s of ch.subtitles) all.push([s.start, s.end]);
-              const a = Math.min(...all.map(r => r[0]));
-              const b = Math.max(...all.map(r => r[1]));
-              return t >= a && t <= b;
-            })?.subtitles || [])
-          : (EPISODE.subtitles || []);
-        const activeSub = activeSubs.find(s => t >= s.start && t <= s.end);
     };
 
     window.getDurationMs = () => TOTAL_DURATION_MS;
